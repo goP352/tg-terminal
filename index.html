@@ -7,32 +7,32 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root { --bg: #0b0e11; --card: #1e2329; --accent: #f0b90b; --green: #02d1a0; --red: #f6465d; --text: #eaecef; --border: #2b3139; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 10px; overflow-x: hidden; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 10px; }
         
+        /* Вкладки */
         .tabs { display: flex; gap: 4px; margin-bottom: 10px; background: #161a1e; padding: 4px; border-radius: 10px; }
-        .tab { flex: 1; text-align: center; padding: 10px; font-size: 11px; border-radius: 8px; cursor: pointer; color: #848e9c; }
-        .tab.active { background: var(--card); color: var(--accent); font-weight: bold; border: 1px solid var(--border); }
+        .tab { flex: 1; text-align: center; padding: 12px; font-size: 11px; border-radius: 8px; cursor: pointer; color: #848e9c; border: 1px solid transparent; }
+        .tab.active { background: var(--card); color: var(--accent); font-weight: bold; border-color: var(--border); }
 
-        .tab-content { display: none; }
-        .tab-content.active { display: block; animation: fadeIn 0.3s; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        /* Контент */
+        .tab-content { display: none; } /* Скрыто по умолчанию */
+        .tab-content.active { display: block !important; } /* Показываем активный */
 
         .card { background: var(--card); padding: 15px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 10px; }
-        .chart-container { width: 100%; height: 240px; border-radius: 12px; overflow: hidden; border: 1px solid var(--border); margin-bottom: 10px; }
+        .chart-container { width: 100%; height: 300px; border-radius: 12px; overflow: hidden; border: 1px solid var(--border); margin-bottom: 10px; }
         
         label { font-size: 10px; color: #848e9c; display: block; margin-bottom: 5px; text-transform: uppercase; }
-        select, input { width: 100%; background: #2b3139; border: 1px solid #474d57; color: white; padding: 12px; border-radius: 8px; box-sizing: border-box; font-size: 16px; outline: none; margin-bottom: 10px; }
+        select, input { width: 100%; background: #2b3139; border: 1px solid #474d57; color: white; padding: 12px; border-radius: 8px; box-sizing: border-box; font-size: 16px; margin-bottom: 10px; outline: none; }
         
         .leverage-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 15px; }
-        .lev-btn { background: #2b3139; border: 1px solid #474d57; color: white; padding: 8px; border-radius: 6px; font-size: 11px; cursor: pointer; }
-        .lev-btn.active { background: var(--accent); color: black; font-weight: bold; }
+        .lev-btn { background: #2b3139; border: 1px solid #474d57; color: white; padding: 10px; border-radius: 6px; font-size: 11px; }
+        .lev-btn.active { background: var(--accent); color: black; font-weight: bold; border-color: var(--accent); }
 
         .btn-group { display: flex; gap: 10px; }
         .action { flex: 1; padding: 16px; border: none; border-radius: 10px; font-weight: bold; font-size: 16px; cursor: pointer; }
         .buy { background: var(--green); color: black; }
         .sell { background: var(--red); color: white; }
-        .empty-state { text-align: center; padding: 30px; color: #848e9c; }
-        .withdraw-btn { background: var(--accent); color: black; width: 100%; padding: 15px; border: none; border-radius: 10px; font-weight: bold; font-size: 16px; }
+        .withdraw-btn { background: var(--accent); color: black; width: 100%; padding: 15px; border: none; border-radius: 10px; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -43,7 +43,7 @@
         <div class="tab" onclick="switchTab('withdraw', this)">ВЫВОД</div>
     </div>
 
-    <!-- ТРЕЙДИНГ -->
+    <!-- ТРЕЙДИНГ (Активен сразу) -->
     <div id="trade-tab" class="tab-content active">
         <div class="chart-container">
             <iframe id="tv-chart" src="https://s.tradingview.com/widgetembed/?symbol=BINANCE:BTCUSDT&theme=dark" width="100%" height="100%" frameborder="0"></iframe>
@@ -57,17 +57,11 @@
                 <option value="SOLUSDT">Solana (SOL)</option>
                 <option value="XRPUSDT">Ripple (XRP)</option>
                 <option value="DOGEUSDT">Dogecoin (DOGE)</option>
-                <option value="BNBUSDT">Binance Coin (BNB)</option>
-                <option value="AVAXUSDT">Avalanche (AVAX)</option>
-                <option value="MATICUSDT">Polygon (MATIC)</option>
-                <option value="DOTUSDT">Polkadot (DOT)</option>
-                <option value="LTCUSDT">Litecoin (LTC)</option>
+                <option value="BNBUSDT">Binance (BNB)</option>
                 <option value="PEPEUSDT">Pepe (PEPE)</option>
-                <option value="SHIBUSDT">Shiba Inu (SHIB)</option>
-                <option value="NEARUSDT">Near (NEAR)</option>
             </select>
 
-            <label>Плечо</label>
+            <label>Кредитное плечо</label>
             <div class="leverage-grid">
                 <button class="lev-btn active" onclick="setLev(1, this)">x1</button>
                 <button class="lev-btn" onclick="setLev(20, this)">x20</button>
@@ -75,7 +69,7 @@
                 <button class="lev-btn" onclick="setLev(125, this)">x125</button>
             </div>
 
-            <label>Сумма USDT</label>
+            <label>Сумма сделки (USDT)</label>
             <input type="number" id="amount" value="100">
 
             <div class="btn-group">
@@ -87,9 +81,9 @@
 
     <!-- ИСТОРИЯ -->
     <div id="history-tab" class="tab-content">
-        <div class="card empty-state">
+        <div class="card" style="text-align: center; padding: 40px; color: #848e9c;">
             <div style="font-size: 40px;">📜</div>
-            <p>История пуста. Все ваши сделки сохраняются в базе данных бота.</p>
+            <p>Ваши сделки сохраняются в базе данных. Проверьте кнопку "История" в боте.</p>
         </div>
     </div>
 
@@ -98,9 +92,9 @@
         <div class="card">
             <label>Адрес кошелька (TRC-20)</label>
             <input type="text" id="wallet" placeholder="T...">
-            <label>Сумма вывода</label>
-            <input type="number" id="w_amount" placeholder="Min 10 USDT">
-            <button class="withdraw-btn" onclick="withdraw()">СОЗДАТЬ ЗАЯВКУ</button>
+            <label>Сумма вывода (USDT)</label>
+            <input type="number" id="w_amount" placeholder="Минимум 10">
+            <button class="withdraw-btn" onclick="makeWithdraw()">СОЗДАТЬ ЗАЯВКУ</button>
         </div>
     </div>
 
@@ -109,18 +103,22 @@
         tg.expand();
         let currentLev = 1;
 
-        function switchTab(id, el) {
+        function switchTab(tabId, el) {
+            // Убираем активный класс у кнопок
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            // Скрываем все разделы
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            // Активируем нужный
             el.classList.add('active');
-            documen
-t.getElementById(id + '-tab').classList.add('active');
+            document.getElementById(tabId + '-tab').classList.add('active');
         }
 
         function setLev(val, el) {
             currentLev = val;
             document.querySelectorAll('.lev-btn').forEach(b => b.classList.remove('active'));
-            el.classList.add('active');
+            el.classList.add('active
+');
         }
 
         function updateChart() {
@@ -129,19 +127,21 @@ t.getElementById(id + '-tab').classList.add('active');
         }
 
         function process(side) {
-            tg.sendData(JSON.stringify({
+            const data = {
                 type: 'trade',
                 action: side,
                 symbol: document.getElementById('asset').value,
                 amount: document.getElementById('amount').value,
                 lev: currentLev
-            }));
+            };
+            tg.sendData(JSON.stringify(data));
         }
 
-        function withdraw() {
+        function makeWithdraw() {
             const addr = document.getElementById('wallet').value;
             const amt = document.getElementById('w_amount').value;
-            if(!addr || !amt) return tg.showAlert("Заполните все поля!");
+            if(!addr || !amt) return tg.showAlert("Заполните поля!");
+            
             tg.sendData(JSON.stringify({
                 type: 'withdraw',
                 wallet: addr,
