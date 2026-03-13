@@ -24,7 +24,7 @@
         .action { flex: 1; padding: 16px; border: none; border-radius: 10px; font-weight: bold; font-size: 16px; cursor: pointer; }
         .buy { background: var(--green); color: black; }
         .sell { background: var(--red); color: white; }
-        .withdraw-btn { background: var(--accent); color: black; width: 100%; padding: 15px; border: none; border-radius: 10px; font-weight: bold; }
+        .withdraw-btn, .deposit-btn { background: var(--accent); color: black; width: 100%; padding: 15px; border: none; border-radius: 10px; font-weight: bold; margin-top: 10px; }
     </style>
 </head>
 <body>
@@ -32,8 +32,9 @@
         <div class="tab active" onclick="switchTab('trade', this)">ТРЕЙДИНГ</div>
         <div class="tab" onclick="switchTab('history', this)">ИСТОРИЯ</div>
         <div class="tab" onclick="switchTab('withdraw', this)">ВЫВОД</div>
+        <div class="tab" onclick="switchTab('deposit', this)">ПОПОЛНИТЬ</div>
     </div>
-    <!-- ТРЕЙДИНГ (Активен сразу) -->
+    <!-- ТРЕЙДИНГ -->
     <div id="trade-tab" class="tab-content active">
         <div class="chart-container">
             <iframe id="tv-chart" src="https://s.tradingview.com/widgetembed/?symbol=BINANCE:BTCUSDT&theme=dark" width="100%" height="100%" frameborder="0"></iframe>
@@ -81,6 +82,14 @@
             <button class="withdraw-btn" onclick="makeWithdraw()">СОЗДАТЬ ЗАЯВКУ</button>
         </div>
     </div>
+    <!-- ПОПОЛНЕНИЕ -->
+    <div id="deposit-tab" class="tab-content">
+        <div class="card">
+            <label>Сумма пополнения (USDT)</label>
+            <input type="number" id="d_amount" placeholder="Введите сумму">
+            <button class="deposit-btn" onclick="makeDeposit()">ПОПОЛНИТЬ</button>
+        </div>
+    </div>
     <script>
         let tg = window.Telegram.WebApp;
         tg.expand();
@@ -119,6 +128,14 @@
             tg.sendData(JSON.stringify({
                 type: 'withdraw',
                 wallet: addr,
+                amount: amt
+            }));
+        }
+        function makeDeposit() {
+            const amt = Number(document.getElementById('d_amount').value);
+            if (!amt || amt <= 0) return tg.showAlert("Введите корректную сумму!");
+            tg.sendData(JSON.stringify({
+                type: 'deposit',
                 amount: amt
             }));
         }
