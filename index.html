@@ -8,26 +8,18 @@
     <style>
         :root { --bg: #0b0e11; --card: #1e2329; --accent: #f0b90b; --green: #02d1a0; --red: #f6465d; --text: #eaecef; --border: #2b3139; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 10px; }
-        
-        /* Вкладки */
         .tabs { display: flex; gap: 4px; margin-bottom: 10px; background: #161a1e; padding: 4px; border-radius: 10px; }
         .tab { flex: 1; text-align: center; padding: 12px; font-size: 11px; border-radius: 8px; cursor: pointer; color: #848e9c; border: 1px solid transparent; }
         .tab.active { background: var(--card); color: var(--accent); font-weight: bold; border-color: var(--border); }
-
-        /* Контент */
-        .tab-content { display: none; } /* Скрыто по умолчанию */
-        .tab-content.active { display: block !important; } /* Показываем активный */
-
+        .tab-content { display: none; }
+        .tab-content.active { display: block !important; }
         .card { background: var(--card); padding: 15px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 10px; }
         .chart-container { width: 100%; height: 300px; border-radius: 12px; overflow: hidden; border: 1px solid var(--border); margin-bottom: 10px; }
-        
         label { font-size: 10px; color: #848e9c; display: block; margin-bottom: 5px; text-transform: uppercase; }
         select, input { width: 100%; background: #2b3139; border: 1px solid #474d57; color: white; padding: 12px; border-radius: 8px; box-sizing: border-box; font-size: 16px; margin-bottom: 10px; outline: none; }
-        
         .leverage-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 15px; }
         .lev-btn { background: #2b3139; border: 1px solid #474d57; color: white; padding: 10px; border-radius: 6px; font-size: 11px; }
         .lev-btn.active { background: var(--accent); color: black; font-weight: bold; border-color: var(--accent); }
-
         .btn-group { display: flex; gap: 10px; }
         .action { flex: 1; padding: 16px; border: none; border-radius: 10px; font-weight: bold; font-size: 16px; cursor: pointer; }
         .buy { background: var(--green); color: black; }
@@ -36,19 +28,16 @@
     </style>
 </head>
 <body>
-
     <div class="tabs">
         <div class="tab active" onclick="switchTab('trade', this)">ТРЕЙДИНГ</div>
         <div class="tab" onclick="switchTab('history', this)">ИСТОРИЯ</div>
         <div class="tab" onclick="switchTab('withdraw', this)">ВЫВОД</div>
     </div>
-
     <!-- ТРЕЙДИНГ (Активен сразу) -->
     <div id="trade-tab" class="tab-content active">
         <div class="chart-container">
             <iframe id="tv-chart" src="https://s.tradingview.com/widgetembed/?symbol=BINANCE:BTCUSDT&theme=dark" width="100%" height="100%" frameborder="0"></iframe>
         </div>
-
         <div class="card">
             <label>Инструмент</label>
             <select id="asset" onchange="updateChart()">
@@ -60,7 +49,6 @@
                 <option value="BNBUSDT">Binance (BNB)</option>
                 <option value="PEPEUSDT">Pepe (PEPE)</option>
             </select>
-
             <label>Кредитное плечо</label>
             <div class="leverage-grid">
                 <button class="lev-btn active" onclick="setLev(1, this)">x1</button>
@@ -68,17 +56,14 @@
                 <button class="lev-btn" onclick="setLev(50, this)">x50</button>
                 <button class="lev-btn" onclick="setLev(125, this)">x125</button>
             </div>
-
             <label>Сумма сделки (USDT)</label>
             <input type="number" id="amount" value="100">
-
             <div class="btn-group">
                 <button class="action buy" onclick="process('LONG')">LONG</button>
                 <button class="action sell" onclick="process('SHORT')">SHORT</button>
             </div>
         </div>
     </div>
-
     <!-- ИСТОРИЯ -->
     <div id="history-tab" class="tab-content">
         <div class="card" style="text-align: center; padding: 40px; color: #848e9c;">
@@ -86,7 +71,6 @@
             <p>Ваши сделки сохраняются в базе данных. Проверьте кнопку "История" в боте.</p>
         </div>
     </div>
-
     <!-- ВЫВОД -->
     <div id="withdraw-tab" class="tab-content">
         <div class="card">
@@ -97,51 +81,41 @@
             <button class="withdraw-btn" onclick="makeWithdraw()">СОЗДАТЬ ЗАЯВКУ</button>
         </div>
     </div>
-
     <script>
         let tg = window.Telegram.WebApp;
         tg.expand();
         let currentLev = 1;
-
         function switchTab(tabId, el) {
-            // Убираем активный класс у кнопок
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            // Скрываем все разделы
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            
-            // Активируем нужный
             el.classList.add('active');
             document.getElementById(tabId + '-tab').classList.add('active');
         }
-
         function setLev(val, el) {
             currentLev = val;
             document.querySelectorAll('.lev-btn').forEach(b => b.classList.remove('active'));
-            el.classList.add('active
-');
+            el.classList.add('active');
         }
-
         function updateChart() {
             const sym = document.getElementById('asset').value;
             document.getElementById('tv-chart').src = `https://s.tradingview.com/widgetembed/?symbol=BINANCE:${sym}&theme=dark`;
         }
-
         function process(side) {
+            const amount = Number(document.getElementById('amount').value);
+            if (!amount || amount <= 0) return tg.showAlert("Введите сумму сделки!");
             const data = {
                 type: 'trade',
                 action: side,
                 symbol: document.getElementById('asset').value,
-                amount: document.getElementById('amount').value,
+                amount: amount,
                 lev: currentLev
             };
             tg.sendData(JSON.stringify(data));
         }
-
         function makeWithdraw() {
             const addr = document.getElementById('wallet').value;
-            const amt = document.getElementById('w_amount').value;
-            if(!addr || !amt) return tg.showAlert("Заполните поля!");
-            
+            const amt = Number(document.getElementById('w_amount').value);
+            if(!addr || !amt || amt < 10) return tg.showAlert("Заполните поля и укажите сумму не менее 10!");
             tg.sendData(JSON.stringify({
                 type: 'withdraw',
                 wallet: addr,
