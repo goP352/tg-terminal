@@ -5,12 +5,12 @@
 <title>MiniApp</title>
 <style>
 body {font-family: Arial, sans-serif; background:#f4f6fb; margin:8px;}
-.card {background:#fff; border-radius:10px; padding:10px; box-shadow:0 4px 10px rgba(0,0,0,0.08); margin-bottom:10px;}
-.tab {display:flex; gap:5px; margin-bottom:8px;}
-.tab button {flex:1; border:none; border-radius:8px; padding:8px; background:#2563eb; color:#fff; cursor:pointer;}
-input, select, textarea {width:100%; margin:4px 0; padding:8px; border:1px solid #ccc; border-radius:6px;}
-button.action {background:#2563eb; color:#fff; border:none; border-radius:7px; padding:10px; width:100%; cursor:pointer;}
-iframe {width:100%; min-height:280px; border:1px solid #ddd; border-radius:8px;}
+.card {background:#fff; border-radius:10px; padding:10px; box-shadow:0 0 12px rgba(0,0,0,0.08); margin-bottom:10px;}
+.tab {display:flex; gap:6px; margin-bottom:10px;}
+.tab button {flex:1; border:none; border-radius:8px; background:#2563eb; color:#fff; padding:8px; cursor:pointer;}
+input,select,textarea {width:100%; margin:4px 0; padding:8px; border:1px solid #ccc; border-radius:6px;}
+button.action {width:100%; border:none; border-radius:8px; background:#2563eb; color:#fff; padding:10px; cursor:pointer;}
+iframe {width:100%; height:280px; border-radius:8px; border:1px solid #ddd; margin-bottom:10px;}
 </style>
 </head>
 <body>
@@ -21,9 +21,9 @@ iframe {width:100%; min-height:280px; border:1px solid #ddd; border-radius:8px;}
   <button onclick="show('support')">Поддержка</button>
 </div>
 
-<div class="card" id="chartBlock">
-  <h3>График цены (BTC/USDT)</h3>
-  <iframe src="https://s.tradingview.com/widgetembed/?frameElementId=tradingview_1&symbol=COINBASE:BTCUSD&interval=D&hidetoptoolbar=1&theme=light" scrolling="no"></iframe>
+<div class="card">
+  <h3>График BTC/USDT</h3>
+  <iframe src="https://s.tradingview.com/widgetembed/?frameElementId=tradingview_1&symbol=COINBASE:BTCUSD&interval=60&theme=light&style=1"></iframe>
 </div>
 
 <div class="card" id="trade">
@@ -32,7 +32,7 @@ iframe {width:100%; min-height:280px; border:1px solid #ddd; border-radius:8px;}
   <input id="amount" type="number" placeholder="Сумма" value="10">
   <input id="price" type="number" placeholder="Цена" value="1">
   <select id="direction"><option value="long">Long</option><option value="short">Short</option></select>
-  <button class="action" onclick="sendTrade()">Открыть сделку</button>
+  <button class="action" onclick="sendTrade()">Открыть</button>
 </div>
 
 <div class="card" id="deposit" style="display:none;">
@@ -57,7 +57,7 @@ iframe {width:100%; min-height:280px; border:1px solid #ddd; border-radius:8px;}
 
 <script>
 const tg = window.Telegram.WebApp; tg.expand();
-function show(id){["trade","deposit","withdraw","support"].forEach(x=>document.getElementById(x).style.display = x===id?"block":"none");}
+function show(tab){["trade","deposit","withdraw","support"].forEach(id=>document.getElementById(id).style.display = id===tab?"block":"none");}
 function sendTrade(){tg.sendData(JSON.stringify({action:"trade", coin:document.getElementById("coin").value, amount:document.getElementById("amount").value, price:document.getElementById("price").value, direction:document.getElementById("direction").value}));}
 function sendDeposit(){tg.sendData(JSON.stringify({action:"deposit", amount:document.getElementById("dep_amount").value, method:document.getElementById("dep_method").value}));}
 function sendWithdraw(){tg.sendData(JSON.stringify({action:"withdraw", amount:document.getElementById("w_amount").value, wallet:document.getElementById("w_wallet").value}));}
