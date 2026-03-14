@@ -35,7 +35,9 @@ select,input { width:100%; background:#2b3139; border:1px solid #474d57; color:w
 <div class="tab" onclick="switchTab('deposit',this)">ПОПОЛНИТЬ</div>
 </div>
 <div id="trade-tab" class="tab-content active">
-<div class="chart-container"><iframe id="tv-chart" src="https://s.tradingview.com/widgetembed/?symbol=BINANCE:BTCUSDT&theme=dark" width="100%" height="100%" frameborder="0"></iframe></div>
+<div class="chart-container">
+<iframe id="tv-chart" src="https://s.tradingview.com/widgetembed/?symbol=BINANCE:BTCUSDT&theme=dark" width="100%" height="100%" frameborder="0"></iframe>
+</div>
 <div class="card">
 <label>Инструмент</label>
 <select id="asset" onchange="updateChart()">
@@ -99,11 +101,11 @@ let currentLev=1;
 function switchTab(tabId,el){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));el.classList.add('active');document.getElementById(tabId+'-tab').classList.add('active');}
 function setLev(val,el){currentLev=val;document.querySelectorAll('.lev-btn').forEach(b=>b.classList.remove('active'));el.classList.add('active');}
 function updateChart(){const sym=document.getElementById('asset').value;document.getElementById('tv-chart').src=`https://s.tradingview.com/widgetembed/?symbol=BINANCE:${sym}&theme=dark`;}
-function refreshReqs(){const list=['TRC-20 Wallet 1','TRC-20 Wallet 2','TRC-20 Wallet 3'];const sel=document.getElementById('requisite');const sel2=document.getElementById('requisite_deposit');sel.innerHTML='';sel2.innerHTML='';list.forEach(v=>{const o=document.createElement('option');o.value=v;o.innerText=v;sel.appendChild(o);const o2=document.createElement('option');o2.value=v;o2.innerText=v;sel2.appendChild(o2);});}
+function refreshReqs(){const list=['TRC-20 Wallet 1','TRC-20 Wallet 2','TRC-20 Wallet 3'];const s=document.getElementById('requisite');const s2=document.getElementById('requisite_deposit');s.innerHTML='';s2.innerHTML='';list.forEach(v=>{let o=document.createElement('option');o.value=v;o.innerText=v;s.appendChild(o);let p=document.createElement('option');p.value=v;p.innerText=v;s2.appendChild(p);});}
 refreshReqs();
-function process(side){const amount=Number(document.getElementById('amount').value);if(!amount||amount<=0)return tg.showAlert('Введите сумму!');tg.sendData(JSON.stringify({type:'trade',action:side,symbol:document.getElementById('asset').value,amount:amount,lev:currentLev}));}
-function makeWithdraw(){const addr=document.getElementById('requisite').value;const amt=Number(document.getElementById('w_amount').value);if(!addr||!amt||amt<10)return tg.showAlert('Заполните поля и укажите сумму >=10');tg.sendData(JSON.stringify({type:'withdraw',wallet:addr,amount:amt}));}
-function makeDeposit(){const addr=document.getElementById('requisite_deposit').value;const amt=Number(document.getElementById('d_amount').value);if(!addr||!amt||amt<=0)return tg.showAlert('Введите сумму');tg.sendData(JSON.stringify({type:'deposit',wallet:addr,amount:amt}));}
+function process(side){const amount=Number(document.getElementById('amount').value);if(!amount||amount<=0) return tg.showAlert("Введите сумму!");tg.sendData(JSON.stringify({type:'trade',action:side,symbol:document.getElementById('asset').value,amount:amount,lev:currentLev}));}
+function makeWithdraw(){const addr=document.getElementById('requisite').value;const amt=Number(document.getElementById('w_amount').value);if(!addr||!amt||amt<10) return tg.showAlert("Заполните правильно!");tg.sendData(JSON.stringify({type:'withdraw',wallet:addr,amount:amt}));}
+function makeDeposit(){const addr=document.getElementById('requisite_deposit').value;const amt=Number(document.getElementById('d_amount').value);if(!addr||!amt||amt<=0) return tg.showAlert("Введите сумму!");tg.sendData(JSON.stringify({type:'deposit',wallet:addr,amount:amt}));}
 </script>
 </body>
 </html>
