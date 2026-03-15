@@ -2,66 +2,320 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
-<title>MiniApp</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Trade Guard</title>
 <style>
-body {font-family: Arial, sans-serif; background:#f4f6fb; margin:8px;}
-.card {background:#fff; border-radius:10px; padding:10px; box-shadow:0 0 12px rgba(0,0,0,0.08); margin-bottom:10px;}
-.tab {display:flex; gap:6px; margin-bottom:10px;}
-.tab button {flex:1; border:none; border-radius:8px; background:#2563eb; color:#fff; padding:8px; cursor:pointer;}
-input,select,textarea {width:100%; margin:4px 0; padding:8px; border:1px solid #ccc; border-radius:6px;}
-button.action {width:100%; border:none; border-radius:8px; background:#2563eb; color:#fff; padding:10px; cursor:pointer;}
-iframe {width:100%; height:280px; border-radius:8px; border:1px solid #ddd; margin-bottom:10px;}
+:root {
+  --bg: #0b1220;
+  --panel: #121b2d;
+  --panel2: #182338;
+  --border: #23314d;
+  --text: #eef4ff;
+  --muted: #91a0bd;
+  --accent: #3b82f6;
+  --accent2: #2563eb;
+  --danger: #ff8e8e;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  padding: 12px;
+  color: var(--text);
+  font-family: Arial, sans-serif;
+  background:
+    radial-gradient(circle at top left, rgba(59,130,246,.18), transparent 28%),
+    linear-gradient(180deg, #0b1220 0%, #0f172a 100%);
+}
+.shell {
+  max-width: 780px;
+  margin: 0 auto;
+}
+.brand, .card, .status {
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(18,27,45,.98), rgba(15,23,42,.98));
+  box-shadow: 0 14px 40px rgba(0,0,0,.35);
+}
+.brand, .card { padding: 16px; }
+.brand { margin-bottom: 12px; }
+.brand h1 { margin: 0 0 6px; }
+.brand p, .hint, .status { color: var(--muted); }
+.status { margin: 0 0 12px; padding: 12px 14px; }
+.status.error { color: var(--danger); }
+.tab {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.tab button, button.action {
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(180deg, var(--accent), var(--accent2));
+  color: #fff;
+  padding: 12px;
+  cursor: pointer;
+}
+input, select, textarea {
+  width: 100%;
+  margin: 7px 0;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  outline: none;
+  color: var(--text);
+  background: var(--panel2);
+}
+textarea {
+  resize: vertical;
+  min-height: 110px;
+}
+iframe {
+  width: 100%;
+  height: 320px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: #0b0f18;
+}
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+@media (max-width: 640px) {
+  .tab, .grid-2 { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 520px) {
+  .tab, .grid-2 { grid-template-columns: 1fr; }
+}
 </style>
 </head>
 <body>
-<div class="tab">
-  <button onclick="show('trade')">Торговля</button>
-  <button onclick="show('deposit')">Депозит</button>
-  <button onclick="show('withdraw')">Вывод</button>
-  <button onclick="show('support')">Поддержка</button>
-</div>
+<div class="shell">
+  <div class="brand">
+    <h1>Trade Guard</h1>
+    <p>Темный миниапп для торговли, пополнения, вывода и поддержки.</p>
+  </div>
 
-<div class="card">
-  <h3>График BTC/USDT</h3>
-  <iframe src="https://s.tradingview.com/widgetembed/?frameElementId=tradingview_1&symbol=COINBASE:BTCUSD&interval=60&theme=light&style=1"></iframe>
-</div>
+  <div id="status" class="status">Проверьте данные перед отправкой.</div>
 
-<div class="card" id="trade">
-  <h3>Открыть сделку</h3>
-  <select id="coin"><option value="BTC">BTC</option><option value="ETH">ETH</option><option value="USDT">USDT</option></select>
-  <input id="amount" type="number" placeholder="Сумма" value="10">
-  <input id="price" type="number" placeholder="Цена" value="1">
-  <select id="direction"><option value="long">Long</option><option value="short">Short</option></select>
-  <button class="action" onclick="sendTrade()">Открыть</button>
-</div>
+  <div class="tab">
+    <button type="button" onclick="show('trade')">Торговля</button>
+    <button type="button" onclick="show('deposit')">Пополнение</button>
+    <button type="button" onclick="show('withdraw')">Вывод</button>
+    <button type="button" onclick="show('support')">Поддержка</button>
+  </div>
 
-<div class="card" id="deposit" style="display:none;">
-  <h3>Депозит</h3>
-  <input id="dep_amount" type="number" placeholder="Сумма" value="20">
-  <select id="dep_method"><option value="crypto">Crypto</option><option value="card">Карта</option></select>
-  <button class="action" onclick="sendDeposit()">Пополнить</button>
-</div>
+  <div class="card">
+    <h3>График BTC/USDT</h3>
+    <p class="hint">Внешний график может загружаться с небольшой задержкой.</p>
+    <iframe
+      title="BTC/USDT chart"
+      loading="lazy"
+      referrerpolicy="no-referrer"
+      src="https://s.tradingview.com/widgetembed/?frameElementId=tradingview_1&symbol=BINANCE:BTCUSDT&interval=60&theme=dark&style=1">
+    </iframe>
+  </div>
 
-<div class="card" id="withdraw" style="display:none;">
-  <h3>Вывод</h3>
-  <input id="w_amount" type="number" placeholder="Сумма" value="10">
-  <input id="w_wallet" type="text" placeholder="Кошелек">
-  <button class="action" onclick="sendWithdraw()">Вывести</button>
-</div>
+  <div class="card" id="trade">
+    <h3>Открыть сделку</h3>
+    <div class="grid-2">
+      <select id="coin">
+        <option>BTC</option>
+        <option>ETH</option>
+        <option>BNB</option>
+        <option>SOL</option>
+        <option>XRP</option>
+        <option>ADA</option>
+        <option>DOGE</option>
+        <option>TRX</option>
+        <option>TON</option>
+        <option>LTC</option>
+        <option>MATIC</option>
+        <option>DOT</option>
+        <option>AVAX</option>
+        <option>LINK</option>
+        <option>BCH</option>
+      </select>
+      <select id="direction">
+        <option value="long">Long</option>
+        <option value="short">Short</option>
+      </select>
+    </div>
 
-<div class="card" id="support" style="display:none;">
-  <h3>Техподдержка</h3>
-  <textarea id="support_text" rows="4" placeholder="Опишите проблему"></textarea>
-  <button class="action" onclick="sendSupport()">Отправить</button>
+    <div class="grid-2">
+      <input id="amount" type="number" min="0.01" step="0.01" placeholder="Сумма" value="10">
+      <input id="price" type="number" min="0.00000001" step="0.00000001" placeholder="Цена" value="1">
+    </div>
+
+    <button class="action" type="button" onclick="sendTrade()">Открыть сделку</button>
+  </div>
+
+  <div class="card" id="deposit" style="display:none;">
+    <h3>Пополнение</h3>
+    <p class="hint">Выбери сумму, валюту и метод. Деньги начисляются после подтверждения админом.</p>
+
+    <div class="grid-2">
+      <input id="dep_amount" type="number" min="0.01" step="0.01" placeholder="Сумма" value="20">
+      <select id="dep_currency">
+        <option>USDT</option>
+        <option>BTC</option>
+        <option>ETH</option>
+        <option>TON</option>
+        <option>BNB</option>
+        <option>SOL</option>
+      </select>
+    </div>
+
+    <select id="dep_method">
+      <option value="crypto">Crypto</option>
+      <option value="card">Карта</option>
+    </select>
+
+    <button class="action" type="button" onclick="sendDeposit()">Отправить заявку</button>
+  </div>
+
+  <div class="card" id="withdraw" style="display:none;">
+    <h3>Вывод</h3>
+    <p class="hint">Выбери валюту вывода и адрес кошелька.</p>
+
+    <div class="grid-2">
+      <input id="w_amount" type="number" min="0.01" step="0.01" placeholder="Сумма" value="10">
+      <select id="w_currency">
+        <option>USDT</option>
+        <option>BTC</option>
+        <option>ETH</option>
+        <option>TON</option>
+        <option>BNB</option>
+        <option>SOL</option>
+      </select>
+    </div>
+
+    <input id="w_wallet" type="text" maxlength="128" placeholder="Кошелек / адрес вывода">
+    <button class="action" type="button" onclick="sendWithdraw()">Отправить заявку</button>
+  </div>
+
+  <div class="card" id="support" style="display:none;">
+    <h3>Техподдержка</h3>
+    <textarea id="support_text" maxlength="1000" placeholder="Опишите проблему"></textarea>
+    <button class="action" type="button" onclick="sendSupport()">Отправить</button>
+  </div>
 </div>
 
 <script>
-const tg = window.Telegram.WebApp; tg.expand();
-function show(tab){["trade","deposit","withdraw","support"].forEach(id=>document.getElementById(id).style.display = id===tab?"block":"none");}
-function sendTrade(){tg.sendData(JSON.stringify({action:"trade", coin:document.getElementById("coin").value, amount:document.getElementById("amount").value, price:document.getElementById("price").value, direction:document.getElementById("direction").value}));}
-function sendDeposit(){tg.sendData(JSON.stringify({action:"deposit", amount:document.getElementById("dep_amount").value, method:document.getElementById("dep_method").value}));}
-function sendWithdraw(){tg.sendData(JSON.stringify({action:"withdraw", amount:document.getElementById("w_amount").value, wallet:document.getElementById("w_wallet").value}));}
-function sendSupport(){tg.sendData(JSON.stringify({action:"support", message:document.getElementById("support_text").value}));}
+const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+const statusEl = document.getElementById("status");
+const allowedTradeCoins = ["BTC","ETH","BNB","SOL","XRP","ADA","DOGE","TRX","TON","LTC","MATIC","DOT","AVAX","LINK","BCH"];
+const allowedCurrencies = ["USDT","BTC","ETH","TON","BNB","SOL"];
+
+if (tg) {
+  tg.expand();
+  tg.ready();
+  setStatus("Миниапп подключен к Telegram.");
+} else {
+  setStatus("Режим предпросмотра: откройте миниапп из Telegram для отправки данных.", true);
+}
+
+function setStatus(message, isError = false) {
+  statusEl.textContent = message;
+  statusEl.className = isError ? "status error" : "status";
+}
+
+function show(tab) {
+  ["trade","deposit","withdraw","support"].forEach(id => {
+    document.getElementById(id).style.display = id === tab ? "block" : "none";
+  });
+  setStatus("Проверьте данные перед отправкой.");
+}
+
+function readPositiveNumber(id, label) {
+  const value = document.getElementById(id).value.trim();
+  const number = Number(value);
+  if (!Number.isFinite(number) || number <= 0) {
+    throw new Error(`Поле "${label}" должно быть больше нуля.`);
+  }
+  return Number(number.toFixed(8));
+}
+
+function readText(id, label, maxLength) {
+  const value = document.getElementById(id).value.trim();
+  if (!value) throw new Error(`Поле "${label}" не должно быть пустым.`);
+  if (value.length > maxLength) throw new Error(`Поле "${label}" слишком длинное.`);
+  return value;
+}
+
+function sendPayload(payload, successMessage) {
+  if (!tg) {
+    setStatus("Отправка доступна только внутри Telegram.", true);
+    return;
+  }
+  tg.sendData(JSON.stringify(payload));
+  setStatus(successMessage);
+}
+
+function sendTrade() {
+  try {
+    const coin = document.getElementById("coin").value;
+    const direction = document.getElementById("direction").value;
+    if (!allowedTradeCoins.includes(coin)) throw new Error("Недопустимая монета.");
+    if (!["long","short"].includes(direction)) throw new Error("Недопустимое направление сделки.");
+
+    sendPayload({
+      action: "trade",
+      coin,
+      amount: readPositiveNumber("amount", "Сумма"),
+      price: readPositiveNumber("price", "Цена"),
+      direction
+    }, "Данные сделки отправлены в бот.");
+  } catch (e) {
+    setStatus(e.message, true);
+  }
+}
+
+function sendDeposit() {
+  try {
+    const method = document.getElementById("dep_method").value;
+    const currency = document.getElementById("dep_currency").value;
+    if (!["crypto","card"].includes(method)) throw new Error("Недопустимый способ пополнения.");
+    if (!allowedCurrencies.includes(currency)) throw new Error("Недопустимая валюта пополнения.");
+
+    sendPayload({
+      action: "deposit",
+      amount: readPositiveNumber("dep_amount", "Сумма пополнения"),
+      currency,
+      method
+    }, "Заявка на пополнение отправлена.");
+  } catch (e) {
+    setStatus(e.message, true);
+  }
+}
+
+function sendWithdraw() {
+  try {
+    const currency = document.getElementById("w_currency").value;
+    if (!allowedCurrencies.includes(currency)) throw new Error("Недопустимая валюта вывода.");
+
+    sendPayload({
+      action: "withdraw",
+      amount: readPositiveNumber("w_amount", "Сумма вывода"),
+      currency,
+      wallet: readText("w_wallet", "Кошелек", 128)
+    }, "Заявка на вывод отправлена.");
+  } catch (e) {
+    setStatus(e.message, true);
+  }
+}
+
+function sendSupport() {
+  try {
+    sendPayload({
+      action: "support",
+      message: readText("support_text", "Сообщение", 1000)
+    }, "Сообщение отправлено в поддержку.");
+  } catch (e) {
+    setStatus(e.message, true);
+  }
+}
 </script>
 </body>
 </html>
