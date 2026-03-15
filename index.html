@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Trade Guard</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
@@ -17,6 +17,9 @@
   --accent2: #2563eb;
 }
 * { box-sizing: border-box; }
+html, body {
+  min-height: 100%;
+}
 body {
   margin: 0;
   padding: 12px;
@@ -26,7 +29,35 @@ body {
     radial-gradient(circle at top left, rgba(59,130,246,.18), transparent 28%),
     linear-gradient(180deg, #0b1220 0%, #0f172a 100%);
 }
-.shell { max-width: 780px; margin: 0 auto; }
+.shell {
+  width: 100%;
+  max-width: 1100px;
+  min-height: calc(100vh - 24px);
+  margin: 0 auto;
+}
+.tab {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  margin-bottom: 12px;
+}
+.tab::-webkit-scrollbar {
+  display: none;
+}
+.tab button, button.action {
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(180deg, var(--accent), var(--accent2));
+  color: #fff;
+  padding: 12px 16px;
+  cursor: pointer;
+  white-space: nowrap;
+  font-size: 14px;
+}
+.tab button {
+  flex: 1 0 180px;
+}
 .card {
   border: 1px solid var(--border);
   border-radius: 18px;
@@ -35,34 +66,28 @@ body {
   padding: 16px;
   margin-bottom: 12px;
 }
-.tab {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
-  margin-bottom: 12px;
-}
-.tab button, button.action {
-  border: none;
-  border-radius: 12px;
-  background: linear-gradient(180deg, var(--accent), var(--accent2));
-  color: #fff;
-  padding: 12px;
-  cursor: pointer;
+.card h3 {
+  margin-top: 0;
+  font-size: 30px;
 }
 input, select, textarea {
   width: 100%;
   margin: 7px 0;
-  padding: 12px;
+  padding: 14px;
   border: 1px solid var(--border);
   border-radius: 12px;
   outline: none;
   color: var(--text);
   background: var(--panel2);
+  font-size: 15px;
 }
-textarea { resize: vertical; min-height: 110px; }
+textarea {
+  resize: vertical;
+  min-height: 130px;
+}
 iframe {
   width: 100%;
-  height: 320px;
+  height: 380px;
   border: 1px solid var(--border);
   border-radius: 14px;
   background: #0b0f18;
@@ -70,13 +95,18 @@ iframe {
 .grid-2 {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  gap: 12px;
 }
-@media (max-width: 640px) {
-  .tab, .grid-2 { grid-template-columns: 1fr 1fr; }
-}
-@media (max-width: 520px) {
-  .tab, .grid-2 { grid-template-columns: 1fr; }
+@media (max-width: 700px) {
+  .grid-2 {
+    grid-template-columns: 1fr;
+  }
+  .card h3 {
+    font-size: 24px;
+  }
+  iframe {
+    height: 300px;
+  }
 }
 </style>
 </head>
@@ -86,7 +116,7 @@ iframe {
     <button type="button" onclick="show('trade')">Торговля</button>
     <button type="button" onclick="show('deposit')">Пополнение</button>
     <button type="button" onclick="show('withdraw')">Вывод</button>
-    <button type="button" onclick="show('support')">Поддержка</button>
+    <button type="button" onclick="show('support')">Техподдержка</button>
   </div>
 
   <div class="card">
@@ -103,10 +133,10 @@ iframe {
     <h3>Открыть сделку</h3>
     <div class="grid-2">
       <select id="coin">
-        <option>BTC</option><option>ETH</option><option>BNB</option><option>SOL</option>
-        <option>XRP</option><option>ADA</option><option>DOGE</option><option>TRX</option>
-        <option>TON</option><option>LTC</option><option>MATIC</option><option>DOT</option>
-        <option>AVAX</option><option>LINK</option><option>BCH</option>
+        <option>USDT</option><option>BTC</option><option>ETH</option><option>BNB</option>
+        <option>SOL</option><option>XRP</option><option>ADA</option><option>DOGE</option>
+        <option>TRX</option><option>TON</option><option>LTC</option><option>MATIC</option>
+        <option>DOT</option><option>AVAX</option><option>LINK</option><option>BCH</option>
       </select>
       <select id="direction">
         <option value="long">Long</option>
@@ -125,8 +155,10 @@ iframe {
     <div class="grid-2">
       <input id="dep_amount" type="number" min="0.01" step="0.01" placeholder="Сумма" value="20">
       <select id="dep_currency">
-        <option>USDT</option><option>BTC</option><option>ETH</option>
-        <option>TON</option><option>BNB</option><option>SOL</option>
+        <option>USDT</option><option>BTC</option><option>ETH</option><option>BNB</option>
+        <option>SOL</option><option>XRP</option><option>ADA</option><option>DOGE</option>
+        <option>TRX</option><option>TON</option><option>LTC</option><option>MATIC</option>
+        <option>DOT</option><option>AVAX</option><option>LINK</option><option>BCH</option>
       </select>
     </div>
     <select id="dep_method">
@@ -141,8 +173,10 @@ iframe {
     <div class="grid-2">
       <input id="w_amount" type="number" min="0.01" step="0.01" placeholder="Сумма" value="10">
       <select id="w_currency">
-        <option>USDT</option><option>BTC</option><option>ETH</option>
-        <option>TON</option><option>BNB</option><option>SOL</option>
+        <option>USDT</option><option>BTC</option><option>ETH</option><option>BNB</option>
+        <option>SOL</option><option>XRP</option><option>ADA</option><option>DOGE</option>
+        <option>TRX</option><option>TON</option><option>LTC</option><option>MATIC</option>
+        <option>DOT</option><option>AVAX</option><option>LINK</option><option>BCH</option>
       </select>
     </div>
     <input id="w_wallet" type="text" maxlength="128" placeholder="Кошелек / адрес вывода">
@@ -158,8 +192,7 @@ iframe {
 
 <script>
 const tg = window.Telegram?.WebApp ?? null;
-const allowedTradeCoins = ["BTC","ETH","BNB","SOL","XRP","ADA","DOGE","TRX","TON","LTC","MATIC","DOT","AVAX","LINK","BCH"];
-const allowedCurrencies = ["USDT","BTC","ETH","TON","BNB","SOL"];
+const allowedCoins = ["USDT","BTC","ETH","BNB","SOL","XRP","ADA","DOGE","TRX","TON","LTC","MATIC","DOT","AVAX","LINK","BCH"];
 
 if (tg) {
   tg.ready();
@@ -197,7 +230,7 @@ function sendTrade() {
   try {
     const coin = document.getElementById("coin").value;
     const direction = document.getElementById("direction").value;
-    if (!allowedTradeCoins.includes(coin)) throw new Error("Недопустимая монета.");
+    if (!allowedCoins.includes(coin)) throw new Error("Недопустимая монета.");
     if (!["long","short"].includes(direction)) throw new Error("Недопустимое направление сделки.");
 
     sendPayload({
@@ -215,7 +248,7 @@ function sendDeposit() {
     const method = document.getElementById("dep_method").value;
     const currency = document.getElementById("dep_currency").value;
     if (!["crypto","card"].includes(method)) throw new Error("Недопустимый способ пополнения.");
-    if (!allowedCurrencies.includes(currency)) throw new Error("Недопустимая валюта пополнения.");
+    if (!allowedCoins.includes(currency)) throw new Error("Недопустимая валюта пополнения.");
 
     sendPayload({
       action: "deposit",
@@ -229,7 +262,7 @@ function sendDeposit() {
 function sendWithdraw() {
   try {
     const currency = document.getElementById("w_currency").value;
-    if (!allowedCurrencies.includes(currency)) throw new Error("Недопустимая валюта вывода.");
+    if (!allowedCoins.includes(currency)) throw new Error("Недопустимая валюта вывода.");
 
     sendPayload({
       action: "withdraw",
