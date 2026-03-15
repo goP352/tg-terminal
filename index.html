@@ -15,7 +15,6 @@
   --muted: #91a0bd;
   --accent: #3b82f6;
   --accent2: #2563eb;
-  --danger: #ff8e8e;
 }
 * { box-sizing: border-box; }
 body {
@@ -28,18 +27,14 @@ body {
     linear-gradient(180deg, #0b1220 0%, #0f172a 100%);
 }
 .shell { max-width: 780px; margin: 0 auto; }
-.brand, .card, .status {
+.card {
   border: 1px solid var(--border);
   border-radius: 18px;
   background: linear-gradient(180deg, rgba(18,27,45,.98), rgba(15,23,42,.98));
   box-shadow: 0 14px 40px rgba(0,0,0,.35);
+  padding: 16px;
+  margin-bottom: 12px;
 }
-.brand, .card { padding: 16px; }
-.brand { margin-bottom: 12px; }
-.brand h1 { margin: 0 0 6px; }
-.brand p, .hint, .status { color: var(--muted); }
-.status { margin: 0 0 12px; padding: 12px 14px; }
-.status.error { color: var(--danger); }
 .tab {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -87,13 +82,6 @@ iframe {
 </head>
 <body>
 <div class="shell">
-  <div class="brand">
-    <h1>Trade Guard</h1>
-    <p>Темный миниапп для торговли, пополнения, вывода и поддержки.</p>
-  </div>
-
-  <div id="status" class="status">Проверьте данные перед отправкой.</div>
-
   <div class="tab">
     <button type="button" onclick="show('trade')">Торговля</button>
     <button type="button" onclick="show('deposit')">Пополнение</button>
@@ -103,7 +91,6 @@ iframe {
 
   <div class="card">
     <h3>График BTC/USDT</h3>
-    <p class="hint">Внешний график может загружаться с небольшой задержкой.</p>
     <iframe
       title="BTC/USDT chart"
       loading="lazy"
@@ -135,7 +122,6 @@ iframe {
 
   <div class="card" id="deposit" style="display:none;">
     <h3>Пополнение</h3>
-    <p class="hint">Деньги начисляются после подтверждения админом.</p>
     <div class="grid-2">
       <input id="dep_amount" type="number" min="0.01" step="0.01" placeholder="Сумма" value="20">
       <select id="dep_currency">
@@ -152,7 +138,6 @@ iframe {
 
   <div class="card" id="withdraw" style="display:none;">
     <h3>Вывод</h3>
-    <p class="hint">Выбери валюту вывода и адрес кошелька.</p>
     <div class="grid-2">
       <input id="w_amount" type="number" min="0.01" step="0.01" placeholder="Сумма" value="10">
       <select id="w_currency">
@@ -173,28 +158,18 @@ iframe {
 
 <script>
 const tg = window.Telegram?.WebApp ?? null;
-const statusEl = document.getElementById("status");
 const allowedTradeCoins = ["BTC","ETH","BNB","SOL","XRP","ADA","DOGE","TRX","TON","LTC","MATIC","DOT","AVAX","LINK","BCH"];
 const allowedCurrencies = ["USDT","BTC","ETH","TON","BNB","SOL"];
 
 if (tg) {
   tg.ready();
   tg.expand();
-  setStatus("Миниапп подключен к Telegram.");
-} else {
-  setStatus("Режим предпросмотра: откройте миниапп из Telegram для отправки данных.", true);
-}
-
-function setStatus(message, isError = false) {
-  statusEl.textContent = message;
-  statusEl.className = isError ? "status error" : "status";
 }
 
 function show(tab) {
   ["trade","deposit","withdraw","support"].forEach(id => {
     document.getElementById(id).style.display = id === tab ? "block" : "none";
   });
-  setStatus("Проверьте данные перед отправкой.");
 }
 
 function readPositiveNumber(id, label) {
@@ -213,13 +188,9 @@ function readText(id, label, maxLength) {
   return value;
 }
 
-function sendPayload(payload, successMessage) {
-  if (!tg) {
-    setStatus("Отправка доступна только внутри Telegram.", true);
-    return;
-  }
+function sendPayload(payload) {
+  if (!tg) return;
   tg.sendData(JSON.stringify(payload));
-  setStatus(successMessage);
 }
 
 function sendTrade() {
@@ -235,10 +206,8 @@ function sendTrade() {
       amount: readPositiveNumber("amount", "Сумма"),
       price: readPositiveNumber("price", "Цена"),
       direction
-    }, "Данные сделки отправлены в бот.");
-  } catch (e) {
-    setStatus(e.message, true);
-  }
+    });
+  } catch (e) {}
 }
 
 function sendDeposit() {
@@ -253,10 +222,8 @@ function sendDeposit() {
       amount: readPositiveNumber("dep_amount", "Сумма пополнения"),
       currency,
       method
-    }, "Заявка на пополнение отправлена.");
-  } catch (e) {
-    setStatus(e.message, true);
-  }
+    });
+  } catch (e) {}
 }
 
 function sendWithdraw() {
@@ -269,10 +236,8 @@ function sendWithdraw() {
       amount: readPositiveNumber("w_amount", "Сумма вывода"),
       currency,
       wallet: readText("w_wallet", "Кошелек", 128)
-    }, "Заявка на вывод отправлена.");
-  } catch (e) {
-    setStatus(e.message, true);
-  }
+    });
+  } catch (e) {}
 }
 
 function sendSupport() {
@@ -280,10 +245,8 @@ function sendSupport() {
     sendPayload({
       action: "support",
       message: readText("support_text", "Сообщение", 1000)
-    }, "Сообщение отправлено в поддержку.");
-  } catch (e) {
-    setStatus(e.message, true);
-  }
+    });
+  } catch (e) {}
 }
 </script>
 </body>
