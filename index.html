@@ -228,6 +228,7 @@ function sendTrade() {
     const direction = document.getElementById("direction").value;
     if (!allowedTradeCoins.includes(coin)) throw new Error("Недопустимая монета.");
     if (!["long","short"].includes(direction)) throw new Error("Недопустимое направление сделки.");
+
     sendPayload({
       action: "trade",
       coin,
@@ -246,6 +247,7 @@ function sendDeposit() {
     const currency = document.getElementById("dep_currency").value;
     if (!["crypto","card"].includes(method)) throw new Error("Недопустимый способ пополнения.");
     if (!allowedCurrencies.includes(currency)) throw new Error("Недопустимая валюта пополнения.");
+
     sendPayload({
       action: "deposit",
       amount: readPositiveNumber("dep_amount", "Сумма пополнения"),
@@ -261,6 +263,7 @@ function sendWithdraw() {
   try {
     const currency = document.getElementById("w_currency").value;
     if (!allowedCurrencies.includes(currency)) throw new Error("Недопустимая валюта вывода.");
+
     sendPayload({
       action: "withdraw",
       amount: readPositiveNumber("w_amount", "Сумма вывода"),
