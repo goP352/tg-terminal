@@ -10,7 +10,6 @@
   --bg: #0a0f1c;
   --panel: #11192b;
   --panel-2: #17233b;
-  --panel-3: #0f1727;
   --border: #253452;
   --text: #edf3ff;
   --muted: #92a2c5;
@@ -18,7 +17,6 @@
   --accent-2: #2563eb;
   --green: #16a34a;
   --red: #dc2626;
-  --yellow: #f59e0b;
 }
 * { box-sizing: border-box; }
 html, body { min-height: 100%; }
@@ -37,6 +35,15 @@ body {
   max-width: 1280px;
   min-height: calc(100vh - 24px);
   margin: 0 auto;
+}
+.status-box {
+  display: none;
+  margin-bottom: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(17,25,43,.98), rgba(13,20,34,.98));
+  color: var(--text);
 }
 .topbar {
   display: grid;
@@ -106,11 +113,6 @@ body {
   grid-template-columns: 1fr 1fr;
   gap: 10px;
 }
-.grid-3 {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-}
 input, select, textarea {
   width: 100%;
   margin: 7px 0;
@@ -157,14 +159,6 @@ iframe {
   color: var(--muted);
   font-size: 12px;
 }
-.status-pill {
-  display: inline-block;
-  padding: 5px 10px;
-  border-radius: 999px;
-  background: rgba(59,130,246,.16);
-  color: #bfd8ff;
-  font-size: 12px;
-}
 .empty {
   color: var(--muted);
   font-size: 14px;
@@ -178,7 +172,7 @@ iframe {
   }
 }
 @media (max-width: 720px) {
-  .grid-2, .grid-3, .topbar {
+  .grid-2, .topbar {
     grid-template-columns: 1fr;
   }
   iframe {
@@ -189,6 +183,8 @@ iframe {
 </head>
 <body>
 <div class="shell">
+  <div id="statusBox" class="status-box"></div>
+
   <div class="topbar">
     <div class="metric">
       <div class="label">Режим</div>
@@ -232,13 +228,12 @@ iframe {
         </iframe>
       </div>
 
-      <div class="card" id="portfolioCard">
+      <div class="card tab-card" id="portfolio">
         <h3>Портфель</h3>
-        <div class="small-note">Обновляется по кнопке ниже.</div>
+        <div class="small-note">Нажми кнопку, чтобы отправить запрос в бот и получить обновление в чате.</div>
         <div style="margin-top:10px;">
           <button class="action" type="button" onclick="requestPortfolio()">Обновить портфель</button>
         </div>
-        <div id="portfolioOutput" style="margin-top:14px;" class="empty">Данные пока не загружены.</div>
       </div>
     </div>
 
@@ -332,6 +327,7 @@ iframe {
 
 <script>
 const tg = window.Telegram?.WebApp ?? null;
+const statusBox = document.getElementById("statusBox");
 const coins = [
   "BTC","ETH","BNB","SOL","XRP","ADA","DOGE","TRX",
   "TON","LTC","MATIC","DOT","AVAX","LINK","BCH","USDT"
@@ -348,6 +344,11 @@ if (tg) {
   if (tg.requestFullscreen) {
     try { tg.requestFullscreen(); } catch (e) {}
   }
+}
+
+function showStatus(text) {
+  statusBox.textContent = text;
+  statusBox.style.display = "block";
 }
 
 function showTab(id) {
@@ -377,9 +378,13 @@ function readText(id, label, maxLength) {
   return value;
 }
 
-function sendPayload(payload) {
-  if (!tg) return;
+function sendPayload(payload, successText) {
+  if (!tg) {
+    showStatus("Миниапп открыт вне Telegram.");
+    return;
+  }
   tg.sendData(JSON.stringify(payload));
+  showStatus(successText);
 }
 
 function sendTrade() {
@@ -392,7 +397,7 @@ function sendTrade() {
       price: readPositiveNumber("price", "Цена"),
       take_profit: document.getElementById("take_profit").value.trim(),
       stop_loss: document.getElementById("stop_loss").value.trim()
-    });
+    }, "Ордер отправлен. Миниапп остается открытым.");
   } catch (e) {}
 }
 
@@ -403,7 +408,7 @@ function sendDeposit() {
       amount: readPositiveNumber("dep_amount", "Сумма"),
       currency: document.getElementById("dep_currency").value,
       method: document.getElementById("dep_method").value
-    });
+    }, "Заявка на пополнение отправлена.");
   } catch (e) {}
 }
 
@@ -414,7 +419,7 @@ function sendWithdraw() {
       amount: readPositiveNumber("w_amount", "Сумма"),
       currency: document.getElementById("w_currency").value,
       wallet: readText("w_wallet", "Кошелек", 128)
-    });
+    }, "Заявка на вывод отправлена.");
   } catch (e) {}
 }
 
@@ -423,12 +428,12 @@ function sendSupport() {
     sendPayload({
       action: "support",
       message: readText("support_text", "Сообщение", 1000)
-    });
+    }, "Сообщение отправлено в поддержку.");
   } catch (e) {}
 }
 
 function requestPortfolio() {
-  sendPayload({ action: "portfolio" });
+  sendPayload({ action: "portfolio" }, "Запрос на обновление портфеля отправлен.");
 }
 
 function renderMarket() {
@@ -446,8 +451,10 @@ function renderMarket() {
     tbody.appendChild(tr);
   });
 }
+
 renderMarket();
 fillDemoPrice();
+showTab("trade");
 </script>
 </body>
 </html>
