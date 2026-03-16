@@ -159,10 +159,6 @@ iframe {
   color: var(--muted);
   font-size: 12px;
 }
-.empty {
-  color: var(--muted);
-  font-size: 14px;
-}
 @media (max-width: 980px) {
   .topbar {
     grid-template-columns: 1fr 1fr;
@@ -198,8 +194,8 @@ iframe {
     </div>
     <div class="metric">
       <div class="label">Базовый баланс</div>
-      <div class="value" id="summaryUsdt">10000.00 USDT</div>
-      <div class="sub">Демо-ликвидность аккаунта</div>
+      <div class="value">10000.00 USDT</div>
+      <div class="sub">Демо-старт</div>
     </div>
     <div class="metric">
       <div class="label">Статус</div>
@@ -230,7 +226,7 @@ iframe {
 
       <div class="card tab-card" id="portfolio">
         <h3>Портфель</h3>
-        <div class="small-note">Нажми кнопку, чтобы отправить запрос в бот и получить обновление в чате.</div>
+        <div class="small-note">Нажми кнопку, чтобы получить обновленный портфель в чате бота.</div>
         <div style="margin-top:10px;">
           <button class="action" type="button" onclick="requestPortfolio()">Обновить портфель</button>
         </div>
