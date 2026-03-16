@@ -3,23 +3,25 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Trade Guard</title>
+<title>Trade Guard Terminal</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
 :root {
-  --bg: #0b1220;
-  --panel: #121b2d;
-  --panel2: #182338;
-  --border: #23314d;
-  --text: #eef4ff;
-  --muted: #91a0bd;
+  --bg: #0a0f1c;
+  --panel: #11192b;
+  --panel-2: #17233b;
+  --panel-3: #0f1727;
+  --border: #253452;
+  --text: #edf3ff;
+  --muted: #92a2c5;
   --accent: #3b82f6;
-  --accent2: #2563eb;
+  --accent-2: #2563eb;
+  --green: #16a34a;
+  --red: #dc2626;
+  --yellow: #f59e0b;
 }
 * { box-sizing: border-box; }
-html, body {
-  min-height: 100%;
-}
+html, body { min-height: 100%; }
 body {
   margin: 0;
   padding: 12px;
@@ -27,48 +29,87 @@ body {
   font-family: Arial, sans-serif;
   background:
     radial-gradient(circle at top left, rgba(59,130,246,.18), transparent 28%),
-    linear-gradient(180deg, #0b1220 0%, #0f172a 100%);
+    radial-gradient(circle at bottom right, rgba(22,163,74,.08), transparent 24%),
+    linear-gradient(180deg, #0a0f1c 0%, #101827 100%);
 }
 .shell {
   width: 100%;
-  max-width: 1100px;
+  max-width: 1280px;
   min-height: calc(100vh - 24px);
   margin: 0 auto;
 }
-.tab {
+.topbar {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.metric, .card {
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(17,25,43,.98), rgba(13,20,34,.98));
+  box-shadow: 0 14px 40px rgba(0,0,0,.35);
+}
+.metric {
+  padding: 14px 16px;
+}
+.metric .label {
+  color: var(--muted);
+  font-size: 12px;
+  margin-bottom: 6px;
+}
+.metric .value {
+  font-size: 22px;
+  font-weight: 700;
+}
+.metric .sub {
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 6px;
+}
+.tabbar {
   display: flex;
   gap: 8px;
   overflow-x: auto;
   scrollbar-width: none;
   margin-bottom: 12px;
 }
-.tab::-webkit-scrollbar {
-  display: none;
-}
-.tab button, button.action {
+.tabbar::-webkit-scrollbar { display: none; }
+.tabbar button, button.action {
   border: none;
   border-radius: 12px;
-  background: linear-gradient(180deg, var(--accent), var(--accent2));
+  background: linear-gradient(180deg, var(--accent), var(--accent-2));
   color: #fff;
   padding: 12px 16px;
   cursor: pointer;
   white-space: nowrap;
   font-size: 14px;
 }
-.tab button {
+.tabbar button {
   flex: 1 0 180px;
 }
 .card {
-  border: 1px solid var(--border);
-  border-radius: 18px;
-  background: linear-gradient(180deg, rgba(18,27,45,.98), rgba(15,23,42,.98));
-  box-shadow: 0 14px 40px rgba(0,0,0,.35);
   padding: 16px;
   margin-bottom: 12px;
 }
 .card h3 {
-  margin-top: 0;
-  font-size: 30px;
+  margin: 0 0 12px;
+  font-size: 24px;
+}
+.grid-main {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 12px;
+}
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
 }
 input, select, textarea {
   width: 100%;
@@ -78,7 +119,7 @@ input, select, textarea {
   border-radius: 12px;
   outline: none;
   color: var(--text);
-  background: var(--panel2);
+  background: var(--panel-2);
   font-size: 15px;
 }
 textarea {
@@ -87,122 +128,237 @@ textarea {
 }
 iframe {
   width: 100%;
-  height: 380px;
+  height: 430px;
   border: 1px solid var(--border);
   border-radius: 14px;
   background: #0b0f18;
 }
-.grid-2 {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
+.table {
+  width: 100%;
+  border-collapse: collapse;
 }
-@media (max-width: 700px) {
-  .grid-2 {
+.table th, .table td {
+  padding: 10px 8px;
+  border-bottom: 1px solid rgba(37,52,82,.75);
+  text-align: left;
+  font-size: 13px;
+}
+.table th {
+  color: var(--muted);
+  font-weight: 600;
+}
+.buy-btn {
+  background: linear-gradient(180deg, #16a34a, #15803d) !important;
+}
+.sell-btn {
+  background: linear-gradient(180deg, #dc2626, #b91c1c) !important;
+}
+.small-note {
+  color: var(--muted);
+  font-size: 12px;
+}
+.status-pill {
+  display: inline-block;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: rgba(59,130,246,.16);
+  color: #bfd8ff;
+  font-size: 12px;
+}
+.empty {
+  color: var(--muted);
+  font-size: 14px;
+}
+@media (max-width: 980px) {
+  .topbar {
+    grid-template-columns: 1fr 1fr;
+  }
+  .grid-main {
     grid-template-columns: 1fr;
   }
-  .card h3 {
-    font-size: 24px;
+}
+@media (max-width: 720px) {
+  .grid-2, .grid-3, .topbar {
+    grid-template-columns: 1fr;
   }
   iframe {
-    height: 300px;
+    height: 320px;
   }
 }
 </style>
 </head>
 <body>
 <div class="shell">
-  <div class="tab">
-    <button type="button" onclick="show('trade')">Торговля</button>
-    <button type="button" onclick="show('deposit')">Пополнение</button>
-    <button type="button" onclick="show('withdraw')">Вывод</button>
-    <button type="button" onclick="show('support')">Техподдержка</button>
-  </div>
-
-  <div class="card">
-    <h3>График BTC/USDT</h3>
-    <iframe
-      title="BTC/USDT chart"
-      loading="lazy"
-      referrerpolicy="no-referrer"
-      src="https://s.tradingview.com/widgetembed/?frameElementId=tradingview_1&symbol=BINANCE:BTCUSDT&interval=60&theme=dark&style=1">
-    </iframe>
-  </div>
-
-  <div class="card" id="trade">
-    <h3>Открыть сделку</h3>
-    <div class="grid-2">
-      <select id="coin">
-        <option>USDT</option><option>BTC</option><option>ETH</option><option>BNB</option>
-        <option>SOL</option><option>XRP</option><option>ADA</option><option>DOGE</option>
-        <option>TRX</option><option>TON</option><option>LTC</option><option>MATIC</option>
-        <option>DOT</option><option>AVAX</option><option>LINK</option><option>BCH</option>
-      </select>
-      <select id="direction">
-        <option value="long">Long</option>
-        <option value="short">Short</option>
-      </select>
+  <div class="topbar">
+    <div class="metric">
+      <div class="label">Режим</div>
+      <div class="value">Terminal</div>
+      <div class="sub">Telegram Mini App</div>
     </div>
-    <div class="grid-2">
-      <input id="amount" type="number" min="0.01" step="0.01" placeholder="Сумма" value="10">
-      <input id="price" type="number" min="0.00000001" step="0.00000001" placeholder="Цена" value="1">
+    <div class="metric">
+      <div class="label">Основной рынок</div>
+      <div class="value">BTC/USDT</div>
+      <div class="sub">Live chart view</div>
     </div>
-    <button class="action" type="button" onclick="sendTrade()">Открыть сделку</button>
+    <div class="metric">
+      <div class="label">Базовый баланс</div>
+      <div class="value" id="summaryUsdt">10000.00 USDT</div>
+      <div class="sub">Демо-ликвидность аккаунта</div>
+    </div>
+    <div class="metric">
+      <div class="label">Статус</div>
+      <div class="value">Online</div>
+      <div class="sub">Mini App connected</div>
+    </div>
   </div>
 
-  <div class="card" id="deposit" style="display:none;">
-    <h3>Пополнение</h3>
-    <div class="grid-2">
-      <input id="dep_amount" type="number" min="0.01" step="0.01" placeholder="Сумма" value="20">
-      <select id="dep_currency">
-        <option>USDT</option><option>BTC</option><option>ETH</option><option>BNB</option>
-        <option>SOL</option><option>XRP</option><option>ADA</option><option>DOGE</option>
-        <option>TRX</option><option>TON</option><option>LTC</option><option>MATIC</option>
-        <option>DOT</option><option>AVAX</option><option>LINK</option><option>BCH</option>
-      </select>
-    </div>
-    <select id="dep_method">
-      <option value="crypto">Crypto</option>
-      <option value="card">Карта</option>
-    </select>
-    <button class="action" type="button" onclick="sendDeposit()">Отправить заявку</button>
+  <div class="tabbar">
+    <button type="button" onclick="showTab('trade')">Торговля</button>
+    <button type="button" onclick="showTab('portfolio')">Портфель</button>
+    <button type="button" onclick="showTab('deposit')">Пополнение</button>
+    <button type="button" onclick="showTab('withdraw')">Вывод</button>
+    <button type="button" onclick="showTab('support')">Техподдержка</button>
   </div>
 
-  <div class="card" id="withdraw" style="display:none;">
-    <h3>Вывод</h3>
-    <div class="grid-2">
-      <input id="w_amount" type="number" min="0.01" step="0.01" placeholder="Сумма" value="10">
-      <select id="w_currency">
-        <option>USDT</option><option>BTC</option><option>ETH</option><option>BNB</option>
-        <option>SOL</option><option>XRP</option><option>ADA</option><option>DOGE</option>
-        <option>TRX</option><option>TON</option><option>LTC</option><option>MATIC</option>
-        <option>DOT</option><option>AVAX</option><option>LINK</option><option>BCH</option>
-      </select>
-    </div>
-    <input id="w_wallet" type="text" maxlength="128" placeholder="Кошелек / адрес вывода">
-    <button class="action" type="button" onclick="sendWithdraw()">Отправить заявку</button>
-  </div>
+  <div class="grid-main">
+    <div>
+      <div class="card">
+        <h3>График BTC/USDT</h3>
+        <iframe
+          title="BTC/USDT chart"
+          loading="lazy"
+          referrerpolicy="no-referrer"
+          src="https://s.tradingview.com/widgetembed/?frameElementId=tradingview_1&symbol=BINANCE:BTCUSDT&interval=60&theme=dark&style=1">
+        </iframe>
+      </div>
 
-  <div class="card" id="support" style="display:none;">
-    <h3>Техподдержка</h3>
-    <textarea id="support_text" maxlength="1000" placeholder="Опишите проблему"></textarea>
-    <button class="action" type="button" onclick="sendSupport()">Отправить</button>
+      <div class="card" id="portfolioCard">
+        <h3>Портфель</h3>
+        <div class="small-note">Обновляется по кнопке ниже.</div>
+        <div style="margin-top:10px;">
+          <button class="action" type="button" onclick="requestPortfolio()">Обновить портфель</button>
+        </div>
+        <div id="portfolioOutput" style="margin-top:14px;" class="empty">Данные пока не загружены.</div>
+      </div>
+    </div>
+
+    <div>
+      <div class="card tab-card" id="trade">
+        <h3>Открыть сделку</h3>
+        <div class="grid-2">
+          <select id="coin">
+            <option>BTC</option><option>ETH</option><option>BNB</option><option>SOL</option>
+            <option>XRP</option><option>ADA</option><option>DOGE</option><option>TRX</option>
+            <option>TON</option><option>LTC</option><option>MATIC</option><option>DOT</option>
+            <option>AVAX</option><option>LINK</option><option>BCH</option>
+          </select>
+          <select id="direction">
+            <option value="long">Long</option>
+            <option value="short">Short</option>
+          </select>
+        </div>
+
+        <div class="grid-2">
+          <input id="amount" type="number" min="0.01" step="0.01" placeholder="Количество" value="0.01">
+          <input id="price" type="number" min="0.00000001" step="0.00000001" placeholder="Цена" value="72000">
+        </div>
+
+        <div class="grid-2">
+          <input id="take_profit" type="number" min="0.00000001" step="0.00000001" placeholder="Take Profit">
+          <input id="stop_loss" type="number" min="0.00000001" step="0.00000001" placeholder="Stop Loss">
+        </div>
+
+        <div class="grid-2" style="margin-top:10px;">
+          <button class="action buy-btn" type="button" onclick="sendTrade()">Открыть ордер</button>
+          <button class="action" type="button" onclick="fillDemoPrice()">Подставить цену</button>
+        </div>
+      </div>
+
+      <div class="card tab-card" id="deposit" style="display:none;">
+        <h3>Пополнение</h3>
+        <div class="grid-2">
+          <input id="dep_amount" type="number" min="0.01" step="0.01" placeholder="Сумма" value="100">
+          <select id="dep_currency">
+            <option>USDT</option><option>BTC</option><option>ETH</option><option>BNB</option>
+            <option>SOL</option><option>XRP</option><option>ADA</option><option>DOGE</option>
+            <option>TRX</option><option>TON</option><option>LTC</option><option>MATIC</option>
+            <option>DOT</option><option>AVAX</option><option>LINK</option><option>BCH</option>
+          </select>
+        </div>
+        <select id="dep_method">
+          <option value="crypto">Crypto</option>
+          <option value="card">Карта</option>
+        </select>
+        <button class="action" type="button" onclick="sendDeposit()">Создать заявку</button>
+      </div>
+
+      <div class="card tab-card" id="withdraw" style="display:none;">
+        <h3>Вывод</h3>
+        <div class="grid-2">
+          <input id="w_amount" type="number" min="0.01" step="0.01" placeholder="Сумма" value="10">
+          <select id="w_currency">
+            <option>USDT</option><option>BTC</option><option>ETH</option><option>BNB</option>
+            <option>SOL</option><option>XRP</option><option>ADA</option><option>DOGE</option>
+            <option>TRX</option><option>TON</option><option>LTC</option><option>MATIC</option>
+            <option>DOT</option><option>AVAX</option><option>LINK</option><option>BCH</option>
+          </select>
+        </div>
+        <input id="w_wallet" type="text" maxlength="128" placeholder="Кошелек / адрес вывода">
+        <button class="action sell-btn" type="button" onclick="sendWithdraw()">Создать заявку</button>
+      </div>
+
+      <div class="card tab-card" id="support" style="display:none;">
+        <h3>Техподдержка</h3>
+        <textarea id="support_text" maxlength="1000" placeholder="Опишите проблему"></textarea>
+        <button class="action" type="button" onclick="sendSupport()">Отправить</button>
+      </div>
+
+      <div class="card">
+        <h3>Обзор рынка</h3>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Актив</th>
+              <th>Цена</th>
+              <th>Изм. 24ч</th>
+            </tr>
+          </thead>
+          <tbody id="marketTable"></tbody>
+        </table>
+      </div>
+    </div>
   </div>
 </div>
 
 <script>
 const tg = window.Telegram?.WebApp ?? null;
-const allowedCoins = ["USDT","BTC","ETH","BNB","SOL","XRP","ADA","DOGE","TRX","TON","LTC","MATIC","DOT","AVAX","LINK","BCH"];
+const coins = [
+  "BTC","ETH","BNB","SOL","XRP","ADA","DOGE","TRX",
+  "TON","LTC","MATIC","DOT","AVAX","LINK","BCH","USDT"
+];
+const basePrices = {
+  USDT: 1.0, BTC: 72000, ETH: 3800, BNB: 620, SOL: 170, XRP: 0.62,
+  ADA: 0.74, DOGE: 0.18, TRX: 0.13, TON: 6.3, LTC: 84, MATIC: 1.05,
+  DOT: 8.6, AVAX: 41, LINK: 19, BCH: 510
+};
 
 if (tg) {
   tg.ready();
   tg.expand();
+  if (tg.requestFullscreen) {
+    try { tg.requestFullscreen(); } catch (e) {}
+  }
 }
 
-function show(tab) {
-  ["trade","deposit","withdraw","support"].forEach(id => {
-    document.getElementById(id).style.display = id === tab ? "block" : "none";
+function showTab(id) {
+  document.querySelectorAll(".tab-card").forEach(el => {
+    el.style.display = el.id === id ? "block" : "none";
   });
+}
+
+function fillDemoPrice() {
+  const coin = document.getElementById("coin").value;
+  document.getElementById("price").value = basePrices[coin] || 1;
 }
 
 function readPositiveNumber(id, label) {
@@ -228,46 +384,35 @@ function sendPayload(payload) {
 
 function sendTrade() {
   try {
-    const coin = document.getElementById("coin").value;
-    const direction = document.getElementById("direction").value;
-    if (!allowedCoins.includes(coin)) throw new Error("Недопустимая монета.");
-    if (!["long","short"].includes(direction)) throw new Error("Недопустимое направление сделки.");
-
     sendPayload({
       action: "trade",
-      coin,
-      amount: readPositiveNumber("amount", "Сумма"),
+      coin: document.getElementById("coin").value,
+      direction: document.getElementById("direction").value,
+      amount: readPositiveNumber("amount", "Количество"),
       price: readPositiveNumber("price", "Цена"),
-      direction
+      take_profit: document.getElementById("take_profit").value.trim(),
+      stop_loss: document.getElementById("stop_loss").value.trim()
     });
   } catch (e) {}
 }
 
 function sendDeposit() {
   try {
-    const method = document.getElementById("dep_method").value;
-    const currency = document.getElementById("dep_currency").value;
-    if (!["crypto","card"].includes(method)) throw new Error("Недопустимый способ пополнения.");
-    if (!allowedCoins.includes(currency)) throw new Error("Недопустимая валюта пополнения.");
-
     sendPayload({
       action: "deposit",
-      amount: readPositiveNumber("dep_amount", "Сумма пополнения"),
-      currency,
-      method
+      amount: readPositiveNumber("dep_amount", "Сумма"),
+      currency: document.getElementById("dep_currency").value,
+      method: document.getElementById("dep_method").value
     });
   } catch (e) {}
 }
 
 function sendWithdraw() {
   try {
-    const currency = document.getElementById("w_currency").value;
-    if (!allowedCoins.includes(currency)) throw new Error("Недопустимая валюта вывода.");
-
     sendPayload({
       action: "withdraw",
-      amount: readPositiveNumber("w_amount", "Сумма вывода"),
-      currency,
+      amount: readPositiveNumber("w_amount", "Сумма"),
+      currency: document.getElementById("w_currency").value,
       wallet: readText("w_wallet", "Кошелек", 128)
     });
   } catch (e) {}
@@ -281,6 +426,28 @@ function sendSupport() {
     });
   } catch (e) {}
 }
+
+function requestPortfolio() {
+  sendPayload({ action: "portfolio" });
+}
+
+function renderMarket() {
+  const tbody = document.getElementById("marketTable");
+  tbody.innerHTML = "";
+  coins.filter(c => c !== "USDT").forEach((coin, idx) => {
+    const price = basePrices[coin];
+    const delta = ((idx % 2 === 0 ? 1 : -1) * (idx + 1) * 0.7).toFixed(2);
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${coin}/USDT</td>
+      <td>${price}</td>
+      <td style="color:${delta >= 0 ? '#16a34a' : '#dc2626'}">${delta}%</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+renderMarket();
+fillDemoPrice();
 </script>
 </body>
 </html>
