@@ -106,33 +106,36 @@ body {
   display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; margin-bottom: 12px;
 }
 .tabbar::-webkit-scrollbar { display: none; }
-.tabbar button, button.quick-btn {
+.tabbar button, button.action, button.quick-btn {
   border: none; border-radius: 14px;
   background: linear-gradient(180deg, var(--accent), var(--accent-2));
   color: #fff; padding: 12px 16px; cursor: pointer; white-space: nowrap; font-size: 14px;
 }
-.tabbar button { flex: 1 0 170px; font-weight: 600; }
+.tabbar button { flex: 1 0 165px; font-weight: 600; }
 .card { padding: 18px; margin-bottom: 12px; }
 .card h3 { margin: 0 0 12px; font-size: 24px; }
 .grid-main { display: grid; grid-template-columns: 1.45fr 1fr; gap: 12px; }
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
-input, select {
+input, select, textarea {
   width: 100%; margin: 7px 0; padding: 14px; border: 1px solid var(--border);
   border-radius: 14px; outline: none; color: var(--text); background: var(--panel-2); font-size: 15px;
+}
+textarea {
+  resize: vertical;
+  min-height: 120px;
 }
 iframe {
   width: 100%; height: 430px; border: 1px solid var(--border);
   border-radius: 16px; background: #0b0f18;
 }
 .small-note { color: var(--muted); font-size: 12px; }
-.log-list, .positions-list { display: grid; gap: 8px; }
-.log-item, .position-card, .info-card {
+.log-list { display: grid; gap: 8px; }
+.log-item, .info-card {
   border: 1px solid var(--border); border-radius: 14px; padding: 12px; background: rgba(22,35,58,.8);
 }
 .log-type { font-size: 12px; color: var(--muted); margin-bottom: 4px; }
-.log-text, .position-meta { font-size: 14px; line-height: 1.45; }
-.position-title { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+.log-text { font-size: 14px; line-height: 1.45; }
 .chip {
   display: inline-block; padding: 5px 10px; border-radius: 999px;
   background: rgba(59,130,246,.16); color: #bfdbfe; font-size: 12px; margin-bottom: 8px;
@@ -142,6 +145,15 @@ iframe {
   padding: 10px 8px; border-bottom: 1px solid rgba(37,52,82,.75); text-align: left; font-size: 13px;
 }
 .table th { color: var(--muted); font-weight: 600; }
+.buy-btn {
+  background: linear-gradient(180deg, #16a34a, #15803d) !important;
+}
+.sell-btn {
+  background: linear-gradient(180deg, #dc2626, #b91c1c) !important;
+}
+.neutral-btn, .quick-btn {
+  background: linear-gradient(180deg, #334155, #1e293b) !important;
+}
 @keyframes scrollDown {
   0% { transform: translateY(-35%); }
   100% { transform: translateY(0%); }
@@ -188,22 +200,22 @@ iframe {
         <div class="metric">
           <div class="label">Рынок</div>
           <div class="value" id="topbarPair">BTC/USDT</div>
-          <div class="sub">График без закрытия mini app</div>
-        </div>
-        <div class="metric">
-          <div class="label">Режим</div>
-          <div class="value">Stable</div>
-          <div class="sub">Операции через чат бота</div>
+          <div class="sub">Управление через mini app</div>
         </div>
         <div class="metric">
           <div class="label">Статус</div>
           <div class="value">Online</div>
-          <div class="sub">Mini App не отправляет sendData</div>
+          <div class="sub">Заявки уходят в бота</div>
+        </div>
+        <div class="metric">
+          <div class="label">Режим</div>
+          <div class="value">Local</div>
+          <div class="sub">Без внешнего сервера</div>
         </div>
       </div>
 
       <div class="tabbar">
-        <button type="button" onclick="showTab('trade')">📊 Терминал</button>
+        <button type="button" onclick="showTab('trade')">📊 Торговля</button>
         <button type="button" onclick="showTab('portfolio')">💼 Портфель</button>
         <button type="button" onclick="showTab('deposit')">💳 Пополнение</button>
         <button type="button" onclick="showTab('withdraw')">💸 Вывод</button>
@@ -224,7 +236,7 @@ iframe {
             <div id="activityLog" class="log-list" style="margin-top:12px;">
               <div class="log-item">
                 <div class="log-type">Система</div>
-                <div class="log-text">Mini app открыт в стабильном режиме. Все реальные операции выполняются через чат бота.</div>
+                <div class="log-text">Терминал готов к работе.</div>
               </div>
             </div>
           </div>
@@ -236,7 +248,10 @@ iframe {
             <h3>Терминал</h3>
             <div class="grid-2">
               <select id="coin"></select>
-              <button class="quick-btn" type="button" onclick="fillDemoPrice()">⚙ Обновить цену</button>
+              <select id="direction">
+                <option value="long">🟢 Long</option>
+                <option value="short">🔴 Short</option>
+              </select>
             </div>
             <div class="grid-4">
               <button class="quick-btn" type="button" onclick="setQuickAmount(0.01)">0.01</button>
@@ -248,33 +263,49 @@ iframe {
               <input id="amount" type="number" min="0.01" step="0.01" placeholder="Количество" value="0.01">
               <input id="price" type="number" min="0.00000001" step="0.00000001" placeholder="Цена" value="72000">
             </div>
-            <div class="info-card">
-              Торговля, пополнение, вывод и поддержка выполняются через кнопки в чате бота. Это нужно, чтобы mini app не закрывался.
+            <div class="grid-2">
+              <input id="take_profit" type="number" min="0.00000001" step="0.00000001" placeholder="Take Profit">
+              <input id="stop_loss" type="number" min="0.00000001" step="0.00000001" placeholder="Stop Loss">
+            </div>
+            <div class="grid-2">
+              <button class="action buy-btn" type="button" onclick="sendTrade()">📊 Открыть сделку</button>
+              <button class="action neutral-btn" type="button" onclick="fillDemoPrice()">⚙ Обновить цену</button>
             </div>
           </div>
 
           <div class="card tab-card" id="portfolio" style="display:none;">
             <div class="chip">Portfolio</div>
             <h3>Портфель</h3>
-            <div class="info-card">Открой чат бота и нажми <b>💼 Портфель</b>, чтобы получить актуальный баланс.</div>
+            <div class="info-card">Запросить актуальный портфель в чат бота.</div>
+            <button class="action" type="button" onclick="requestPortfolio()">💼 Обновить портфель</button>
           </div>
 
           <div class="card tab-card" id="deposit" style="display:none;">
             <div class="chip">Funding</div>
             <h3>Пополнение</h3>
-            <div class="info-card">Открой чат бота и нажми <b>💳 Пополнение</b>. Бот сам создаст заявку, пришлет реквизиты и кнопку <b>✅ Я ОПЛАТИЛ</b>.</div>
+            <div class="grid-2">
+              <input id="dep_amount" type="number" min="0.01" step="0.01" placeholder="Сумма" value="100">
+              <select id="dep_currency"></select>
+            </div>
+            <button class="action" type="button" onclick="sendDeposit()">💳 Создать заявку</button>
           </div>
 
           <div class="card tab-card" id="withdraw" style="display:none;">
             <div class="chip">Withdraw</div>
             <h3>Вывод</h3>
-            <div class="info-card">Открой чат бота и нажми <b>💸 Вывод</b>. Вывод доступен только для верифицированных аккаунтов.</div>
+            <div class="grid-2">
+              <input id="w_amount" type="number" min="0.01" step="0.01" placeholder="Сумма" value="10">
+              <select id="w_currency"></select>
+            </div>
+            <input id="w_wallet" type="text" maxlength="128" placeholder="Кошелек / адрес вывода">
+            <button class="action sell-btn" type="button" onclick="sendWithdraw()">💸 Создать заявку</button>
           </div>
 
           <div class="card tab-card" id="support" style="display:none;">
             <div class="chip">Support</div>
             <h3>Поддержка</h3>
-            <div class="info-card">Открой чат бота и нажми <b>🛟 Поддержка</b>, затем отправь сообщение.</div>
+            <textarea id="support_text" maxlength="1000" placeholder="Опишите проблему"></textarea>
+            <button class="action" type="button" onclick="sendSupport()">🛟 Отправить</button>
           </div>
 
           <div class="card">
@@ -324,7 +355,8 @@ const coins = [
   { emoji: "⚫", value: "DOT", price: 8.6 },
   { emoji: "🔻", value: "AVAX", price: 41 },
   { emoji: "🔗", value: "LINK", price: 19 },
-  { emoji: "🟫", value: "BCH", price: 510 }
+  { emoji: "🟫", value: "BCH", price: 510 },
+  { emoji: "💵", value: "USDT", price: 1 }
 ];
 
 if (tg) {
@@ -383,10 +415,91 @@ function fillDemoPrice() {
   addLog("График", `Открыт ${coinValue}/USDT`);
 }
 
+function sendPayload(payload, successText, logType, logText) {
+  if (!tg) {
+    showStatus("Mini app открыт вне Telegram.");
+    return;
+  }
+  tg.sendData(JSON.stringify(payload));
+  showStatus(successText);
+  addLog(logType, logText);
+}
+
+function sendTrade() {
+  const coin = document.getElementById("coin").value;
+  const direction = document.getElementById("direction").value;
+  const amount = Number(document.getElementById("amount").value);
+  const price = Number(document.getElementById("price").value);
+
+  sendPayload(
+    {
+      action: "trade",
+      coin,
+      direction,
+      amount,
+      price,
+      take_profit: document.getElementById("take_profit").value.trim(),
+      stop_loss: document.getElementById("stop_loss").value.trim()
+    },
+    "Заявка на сделку отправлена.",
+    "Сделка",
+    `${coin}/USDT ${direction} ${amount} по ${price}`
+  );
+}
+
+function requestPortfolio() {
+  sendPayload(
+    { action: "portfolio" },
+    "Запрос портфеля отправлен.",
+    "Портфель",
+    "Запрошен портфель"
+  );
+}
+
+function sendDeposit() {
+  sendPayload(
+    {
+      action: "deposit",
+      currency: document.getElementById("dep_currency").value,
+      amount: Number(document.getElementById("dep_amount").value),
+      method: "manual"
+    },
+    "Заявка на пополнение отправлена.",
+    "Пополнение",
+    "Создана заявка на пополнение"
+  );
+}
+
+function sendWithdraw() {
+  sendPayload(
+    {
+      action: "withdraw",
+      currency: document.getElementById("w_currency").value,
+      amount: Number(document.getElementById("w_amount").value),
+      wallet: document.getElementById("w_wallet").value.trim()
+    },
+    "Заявка на вывод отправлена.",
+    "Вывод",
+    "Создана заявка на вывод"
+  );
+}
+
+function sendSupport() {
+  sendPayload(
+    {
+      action: "support",
+      message: document.getElementById("support_text").value.trim()
+    },
+    "Сообщение отправлено.",
+    "Поддержка",
+    "Сообщение отправлено в поддержку"
+  );
+}
+
 function renderMarket() {
   const tbody = document.getElementById("marketTable");
   tbody.innerHTML = "";
-  coins.forEach((coin, idx) => {
+  coins.filter(c => c.value !== "USDT").forEach((coin, idx) => {
     const delta = ((idx % 2 === 0 ? 1 : -1) * (idx + 1) * 0.7).toFixed(2);
     const tr = document.createElement("tr");
     tr.style.cursor = "pointer";
@@ -404,15 +517,17 @@ function renderMarket() {
   });
 }
 
-function fillSelect() {
-  const select = document.getElementById("coin");
+function fillSelect(selectId, includeUsdt = false) {
+  const select = document.getElementById(selectId);
   select.innerHTML = "";
-  coins.forEach(c => {
-    const option = document.createElement("option");
-    option.value = c.value;
-    option.textContent = `${c.emoji} ${c.value}`;
-    select.appendChild(option);
-  });
+  coins
+    .filter(c => includeUsdt || c.value !== "USDT")
+    .forEach(c => {
+      const option = document.createElement("option");
+      option.value = c.value;
+      option.textContent = `${c.emoji} ${c.value}`;
+      select.appendChild(option);
+    });
 }
 
 function renderSideTicker(targetId, reverse = false) {
@@ -434,7 +549,9 @@ function renderSideTicker(targetId, reverse = false) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  fillSelect();
+  fillSelect("coin", false);
+  fillSelect("dep_currency", true);
+  fillSelect("w_currency", true);
   renderMarket();
   renderSideTicker("leftTicker", false);
   renderSideTicker("rightTicker", true);
