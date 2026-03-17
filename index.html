@@ -10,7 +10,6 @@
   --bg: #09111d;
   --panel: #101a2b;
   --panel-2: #16233a;
-  --panel-3: #0d1524;
   --border: #253452;
   --text: #edf3ff;
   --muted: #92a2c5;
@@ -98,7 +97,7 @@ body {
   margin-bottom: 12px;
 }
 .tabbar::-webkit-scrollbar { display: none; }
-.tabbar button, button.action {
+.tabbar button, button.action, button.quick-btn {
   border: none;
   border-radius: 14px;
   background: linear-gradient(180deg, var(--accent), var(--accent-2));
@@ -129,6 +128,11 @@ body {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
+}
+.grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
 }
 input, select, textarea {
   width: 100%;
@@ -172,7 +176,7 @@ iframe {
 .sell-btn {
   background: linear-gradient(180deg, #dc2626, #b91c1c) !important;
 }
-.neutral-btn {
+.neutral-btn, .quick-btn {
   background: linear-gradient(180deg, #334155, #1e293b) !important;
 }
 .small-note {
@@ -207,6 +211,26 @@ iframe {
   font-size: 12px;
   margin-bottom: 8px;
 }
+.positions-list {
+  display: grid;
+  gap: 8px;
+}
+.position-card {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 12px;
+  background: rgba(22,35,58,.8);
+}
+.position-title {
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.position-meta {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
 @media (max-width: 980px) {
   .topbar {
     grid-template-columns: 1fr 1fr;
@@ -216,7 +240,7 @@ iframe {
   }
 }
 @media (max-width: 720px) {
-  .grid-2, .topbar {
+  .grid-2, .topbar, .grid-4 {
     grid-template-columns: 1fr;
   }
   iframe {
@@ -242,7 +266,7 @@ iframe {
     </div>
     <div class="metric">
       <div class="label">Рынок</div>
-      <div class="value">BTC/USDT</div>
+      <div class="value" id="topbarPair">BTC/USDT</div>
       <div class="sub">График и демо-торговля</div>
     </div>
     <div class="metric">
@@ -269,13 +293,24 @@ iframe {
     <div>
       <div class="card">
         <div class="chip">Live chart</div>
-        <h3>BTC/USDT</h3>
-        <iframe
-          title="BTC/USDT chart"
-          loading="lazy"
-          referrerpolicy="no-referrer"
-          src="https://s.tradingview.com/widgetembed/?frameElementId=tradingview_1&symbol=BINANCE:BTCUSDT&interval=60&theme=dark&style=1">
-        </iframe>
+        <h3 id="chartTitle">BTC/USDT</h3>
+        <iframe id="chartFrame" title="TradingView chart" loading="lazy" referrerpolicy="no-referrer"></iframe>
+      </div>
+
+      <div class="card">
+        <div class="chip">Open positions</div>
+        <h3>Открытые позиции</h3>
+        <div class="small-note">Локальный блок для ощущения живого терминала.</div>
+        <div id="positionsList" class="positions-list" style="margin-top:12px;">
+          <div class="position-card">
+            <div class="position-title">🟠 BTC/USDT · 🟢 Long</div>
+            <div class="position-meta">Размер: 0.01500000<br>Вход: 72000<br>PnL: +124.40</div>
+          </div>
+          <div class="position-card">
+            <div class="position-title">💠 ETH/USDT · 🔴 Short</div>
+            <div class="position-meta">Размер: 0.40000000<br>Вход: 3820<br>PnL: -18.70</div>
+          </div>
+        </div>
       </div>
 
       <div class="card">
@@ -297,27 +332,18 @@ iframe {
         <h3>Открыть сделку</h3>
 
         <div class="grid-2">
-          <select id="coin">
-            <option>🟠 BTC</option>
-            <option>💠 ETH</option>
-            <option>🟡 BNB</option>
-            <option>🟣 SOL</option>
-            <option>🔵 XRP</option>
-            <option>🔷 ADA</option>
-            <option>🐶 DOGE</option>
-            <option>🔺 TRX</option>
-            <option>💎 TON</option>
-            <option>⚪ LTC</option>
-            <option>🟪 MATIC</option>
-            <option>⚫ DOT</option>
-            <option>🔻 AVAX</option>
-            <option>🔗 LINK</option>
-            <option>🟫 BCH</option>
-          </select>
+          <select id="coin"></select>
           <select id="direction">
             <option value="long">🟢 Long</option>
             <option value="short">🔴 Short</option>
           </select>
+        </div>
+
+        <div class="grid-4">
+          <button class="quick-btn" type="button" onclick="setQuickAmount(0.01)">0.01</button>
+          <button class="quick-btn" type="button" onclick="setQuickAmount(0.05)">0.05</button>
+          <button class="quick-btn" type="button" onclick="setQuickAmount(0.1)">0.1</button>
+          <button class="quick-btn" type="button" onclick="setQuickAmount(1)">1</button>
         </div>
 
         <div class="grid-2">
@@ -351,12 +377,7 @@ iframe {
 
         <div class="grid-2">
           <input id="dep_amount" type="number" min="0.01" step="0.01" placeholder="Сумма" value="100">
-          <select id="dep_currency">
-            <option>💵 USDT</option><option>🟠 BTC</option><option>💠 ETH</option><option>🟡 BNB</option>
-            <option>🟣 SOL</option><option>🔵 XRP</option><option>🔷 ADA</option><option>🐶 DOGE</option>
-            <option>🔺 TRX</option><option>💎 TON</option><option>⚪ LTC</option><option>🟪 MATIC</option>
-            <option>⚫ DOT</option><option>🔻 AVAX</option><option>🔗 LINK</option><option>🟫 BCH</option>
-          </select>
+          <select id="dep_currency"></select>
         </div>
 
         <select id="dep_method">
@@ -373,12 +394,7 @@ iframe {
 
         <div class="grid-2">
           <input id="w_amount" type="number" min="0.01" step="0.01" placeholder="Сумма" value="10">
-          <select id="w_currency">
-            <option>💵 USDT</option><option>🟠 BTC</option><option>💠 ETH</option><option>🟡 BNB</option>
-            <option>🟣 SOL</option><option>🔵 XRP</option><option>🔷 ADA</option><option>🐶 DOGE</option>
-            <option>🔺 TRX</option><option>💎 TON</option><option>⚪ LTC</option><option>🟪 MATIC</option>
-            <option>⚫ DOT</option><option>🔻 AVAX</option><option>🔗 LINK</option><option>🟫 BCH</option>
-          </select>
+          <select id="w_currency"></select>
         </div>
 
         <input id="w_wallet" type="text" maxlength="128" placeholder="Кошелек / адрес вывода">
@@ -414,23 +430,27 @@ iframe {
 const tg = window.Telegram?.WebApp ?? null;
 const statusBox = document.getElementById("statusBox");
 const activityLog = document.getElementById("activityLog");
+const chartFrame = document.getElementById("chartFrame");
+const chartTitle = document.getElementById("chartTitle");
+const topbarPair = document.getElementById("topbarPair");
 
 const coins = [
-  { label: "🟠 BTC", value: "BTC", price: 72000 },
-  { label: "💠 ETH", value: "ETH", price: 3800 },
-  { label: "🟡 BNB", value: "BNB", price: 620 },
-  { label: "🟣 SOL", value: "SOL", price: 170 },
-  { label: "🔵 XRP", value: "XRP", price: 0.62 },
-  { label: "🔷 ADA", value: "ADA", price: 0.74 },
-  { label: "🐶 DOGE", value: "DOGE", price: 0.18 },
-  { label: "🔺 TRX", value: "TRX", price: 0.13 },
-  { label: "💎 TON", value: "TON", price: 6.3 },
-  { label: "⚪ LTC", value: "LTC", price: 84 },
-  { label: "🟪 MATIC", value: "MATIC", price: 1.05 },
-  { label: "⚫ DOT", value: "DOT", price: 8.6 },
-  { label: "🔻 AVAX", value: "AVAX", price: 41 },
-  { label: "🔗 LINK", value: "LINK", price: 19 },
-  { label: "🟫 BCH", value: "BCH", price: 510 },
+  { emoji: "🟠", value: "BTC", price: 72000 },
+  { emoji: "💠", value: "ETH", price: 3800 },
+  { emoji: "🟡", value: "BNB", price: 620 },
+  { emoji: "🟣", value: "SOL", price: 170 },
+  { emoji: "🔵", value: "XRP", price: 0.62 },
+  { emoji: "🔷", value: "ADA", price: 0.74 },
+  { emoji: "🐶", value: "DOGE", price: 0.18 },
+  { emoji: "🔺", value: "TRX", price: 0.13 },
+  { emoji: "💎", value: "TON", price: 6.3 },
+  { emoji: "⚪", value: "LTC", price: 84 },
+  { emoji: "🟪", value: "MATIC", price: 1.05 },
+  { emoji: "⚫", value: "DOT", price: 8.6 },
+  { emoji: "🔻", value: "AVAX", price: 41 },
+  { emoji: "🔗", value: "LINK", price: 19 },
+  { emoji: "🟫", value: "BCH", price: 510 },
+  { emoji: "💵", value: "USDT", price: 1 }
 ];
 
 if (tg) {
@@ -462,15 +482,33 @@ function showTab(id) {
   });
 }
 
-function selectedCoinValue(raw) {
-  return raw.split(" ").pop().trim();
+function setQuickAmount(value) {
+  document.getElementById("amount").value = value;
+  showStatus(`Количество установлено: ${value}`);
+}
+
+function getCoin(coinValue) {
+  return coins.find(c => c.value === coinValue);
+}
+
+function tradingViewUrl(symbol) {
+  const tvSymbol = `BINANCE:${symbol}USDT`;
+  return `https://s.tradingview.com/widgetembed/?frameElementId=tradingview_1&symbol=${encodeURIComponent(tvSymbol)}&interval=60&theme=dark&style=1&locale=ru`;
+}
+
+function updateChart(coinValue) {
+  const pair = `${coinValue}/USDT`;
+  chartTitle.textContent = pair;
+  topbarPair.textContent = pair;
+  chartFrame.src = tradingViewUrl(coinValue);
 }
 
 function fillDemoPrice() {
-  const coin = selectedCoinValue(document.getElementById("coin").value);
-  const found = coins.find(c => c.value === coin);
+  const coinValue = document.getElementById("coin").value;
+  const found = getCoin(coinValue);
   document.getElementById("price").value = found ? found.price : 1;
-  showStatus(`Цена для ${coin} подставлена.`);
+  updateChart(coinValue);
+  showStatus(`Цена и график обновлены для ${coinValue}.`);
 }
 
 function readPositiveNumber(id, label) {
@@ -502,8 +540,7 @@ function sendPayload(payload, successText, logType, logText) {
 
 function sendTrade() {
   try {
-    const coinRaw = document.getElementById("coin").value;
-    const coin = selectedCoinValue(coinRaw);
+    const coin = document.getElementById("coin").value;
     const direction = document.getElementById("direction").value;
     const amount = readPositiveNumber("amount", "Количество");
     const price = readPositiveNumber("price", "Цена");
@@ -520,7 +557,7 @@ function sendTrade() {
       },
       "Ордер отправлен. Миниапп остается открытым.",
       "📊 Сделка",
-      `${coinRaw} | ${direction} | ${amount} по цене ${price}`
+      `${coin}/USDT | ${direction} | ${amount} по цене ${price}`
     );
   } catch (e) {
     showStatus(e.message);
@@ -530,8 +567,7 @@ function sendTrade() {
 
 function sendDeposit() {
   try {
-    const raw = document.getElementById("dep_currency").value;
-    const currency = selectedCoinValue(raw);
+    const currency = document.getElementById("dep_currency").value;
     const amount = readPositiveNumber("dep_amount", "Сумма");
     const method = document.getElementById("dep_method").value;
 
@@ -544,7 +580,7 @@ function sendDeposit() {
       },
       "Заявка на пополнение отправлена.",
       "💳 Пополнение",
-      `${raw} | ${amount} | метод: ${method}`
+      `${currency} | ${amount} | метод: ${method}`
     );
   } catch (e) {
     showStatus(e.message);
@@ -554,8 +590,7 @@ function sendDeposit() {
 
 function sendWithdraw() {
   try {
-    const raw = document.getElementById("w_currency").value;
-    const currency = selectedCoinValue(raw);
+    const currency = document.getElementById("w_currency").value;
     const amount = readPositiveNumber("w_amount", "Сумма");
     const wallet = readText("w_wallet", "Кошелек", 128);
 
@@ -568,7 +603,7 @@ function sendWithdraw() {
       },
       "Заявка на вывод отправлена.",
       "💸 Вывод",
-      `${raw} | ${amount} -> ${wallet}`
+      `${currency} | ${amount} -> ${wallet}`
     );
   } catch (e) {
     showStatus(e.message);
@@ -579,7 +614,6 @@ function sendWithdraw() {
 function sendSupport() {
   try {
     const message = readText("support_text", "Сообщение", 1000);
-
     sendPayload(
       {
         action: "support",
@@ -607,17 +641,46 @@ function requestPortfolio() {
 function renderMarket() {
   const tbody = document.getElementById("marketTable");
   tbody.innerHTML = "";
-  coins.forEach((coin, idx) => {
+  coins.filter(c => c.value !== "USDT").forEach((coin, idx) => {
     const delta = ((idx % 2 === 0 ? 1 : -1) * (idx + 1) * 0.7).toFixed(2);
     const tr = document.createElement("tr");
+    tr.style.cursor = "pointer";
     tr.innerHTML = `
-      <td>${coin.label}/USDT</td>
+      <td>${coin.emoji} ${coin.value}/USDT</td>
       <td>${coin.price}</td>
       <td style="color:${delta >= 0 ? '#16a34a' : '#dc2626'}">${delta}%</td>
     `;
+    tr.addEventListener("click", () => {
+      document.getElementById("coin").value = coin.value;
+      fillDemoPrice();
+      showTab("trade");
+      addLog("Рынок", `Выбран ${coin.value}/USDT из обзора рынка.`);
+    });
     tbody.appendChild(tr);
   });
 }
+
+function fillSelect(selectId, includeUsdt = false) {
+  const select = document.getElementById(selectId);
+  select.innerHTML = "";
+  coins
+    .filter(c => includeUsdt || c.value !== "USDT")
+    .forEach(c => {
+      const option = document.createElement("option");
+      option.value = c.value;
+      option.textContent = `${c.emoji} ${c.value}`;
+      select.appendChild(option);
+    });
+}
+
+fillSelect("coin", false);
+fillSelect("dep_currency", true);
+fillSelect("w_currency", true);
+
+document.getElementById("coin").addEventListener("change", () => {
+  fillDemoPrice();
+  addLog("График", `График переключен на ${document.getElementById("coin").value}/USDT.`);
+});
 
 renderMarket();
 fillDemoPrice();
