@@ -17,6 +17,7 @@
   --accent-2: #2563eb;
   --green: #16a34a;
   --red: #dc2626;
+  --amber: #f59e0b;
 }
 * { box-sizing: border-box; }
 html, body { min-height: 100%; }
@@ -107,7 +108,7 @@ body {
   font-size: 14px;
 }
 .tabbar button {
-  flex: 1 0 170px;
+  flex: 1 0 165px;
   font-weight: 600;
 }
 .card {
@@ -186,11 +187,15 @@ iframe {
   display: grid;
   gap: 8px;
 }
-.log-item, .position-card, .info-card {
+.log-item, .position-card, .info-card, .notice-card {
   border: 1px solid var(--border);
   border-radius: 14px;
   padding: 12px;
   background: rgba(22,35,58,.8);
+}
+.notice-card {
+  border-color: rgba(245,158,11,.35);
+  background: rgba(245,158,11,.10);
 }
 .log-type {
   font-size: 12px;
@@ -251,17 +256,17 @@ iframe {
     <div class="metric">
       <div class="label">Рынок</div>
       <div class="value" id="topbarPair">BTC/USDT</div>
-      <div class="sub">График и демо-торговля</div>
+      <div class="sub">График и торговый модуль</div>
     </div>
     <div class="metric">
-      <div class="label">Статус</div>
-      <div class="value">Online</div>
-      <div class="sub">Mini App активен</div>
+      <div class="label">Вывод</div>
+      <div class="value">Protected</div>
+      <div class="sub">Требуется верификация</div>
     </div>
     <div class="metric">
       <div class="label">Режим</div>
-      <div class="value">Terminal</div>
-      <div class="sub">Локальный режим</div>
+      <div class="value">Local</div>
+      <div class="sub">Без внешнего сервера</div>
     </div>
   </div>
 
@@ -285,7 +290,7 @@ iframe {
       <div class="card">
         <div class="chip">Open positions</div>
         <h3>Открытые позиции</h3>
-        <div class="small-note">Визуальный блок терминала. Актуальный портфель приходит сообщением в чат.</div>
+        <div class="small-note">Визуальный блок терминала. Актуальные позиции приходят ботом в чат.</div>
         <div id="positionsList" class="positions-list" style="margin-top:12px;">
           <div class="position-card">
             <div class="position-title">🟠 BTC/USDT · 🟢 Long</div>
@@ -350,13 +355,17 @@ iframe {
       <div class="card tab-card" id="portfolio" style="display:none;">
         <div class="chip">Balances</div>
         <h3>Портфель</h3>
-        <div class="small-note">Актуальный портфель и ордера придут сообщением в чат бота.</div>
+        <div class="small-note">Актуальный портфель и история ордеров приходят сообщением в чат бота.</div>
         <button class="action" type="button" onclick="requestPortfolio()">💼 Обновить портфель</button>
       </div>
 
       <div class="card tab-card" id="deposit" style="display:none;">
         <div class="chip">Funding</div>
         <h3>Пополнение</h3>
+
+        <div class="notice-card" style="margin-bottom:10px;">
+          После создания заявки используй раздел <b>Реквизиты</b>, чтобы получить актуальные данные для перевода.
+        </div>
 
         <div class="grid-2">
           <input id="dep_amount" type="number" min="0.01" step="0.01" placeholder="Сумма" value="100">
@@ -375,6 +384,10 @@ iframe {
         <div class="chip">Withdraw</div>
         <h3>Вывод</h3>
 
+        <div class="notice-card" style="margin-bottom:10px;">
+          Вывод доступен только для верифицированных аккаунтов. Если верификация не пройдена, бот сообщит об этом после отправки заявки.
+        </div>
+
         <div class="grid-2">
           <input id="w_amount" type="number" min="0.01" step="0.01" placeholder="Сумма" value="10">
           <select id="w_currency"></select>
@@ -388,7 +401,7 @@ iframe {
         <div class="chip">Payment details</div>
         <h3>Реквизиты</h3>
         <div class="info-card">
-          Актуальные реквизиты отправляются ботом сообщением в чат. Это удобнее и безопаснее для локального режима без сервера.
+          Актуальные реквизиты отправляются ботом сообщением в чат. Это удобнее для локального режима и позволяет всегда видеть только свежие данные.
         </div>
         <div style="margin-top:10px;">
           <button class="action" type="button" onclick="requestRequisites()">🧾 Получить реквизиты</button>
