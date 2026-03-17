@@ -17,6 +17,7 @@
   --accent-2: #2563eb;
   --green: #16a34a;
   --red: #dc2626;
+  --warn: #f59e0b;
 }
 * { box-sizing: border-box; }
 html, body { min-height: 100%; }
@@ -159,6 +160,32 @@ iframe {
   color: var(--muted);
   font-size: 12px;
 }
+.log-list {
+  display: grid;
+  gap: 8px;
+}
+.log-item {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px;
+  background: rgba(23,35,59,.8);
+}
+.log-type {
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+.log-text {
+  font-size: 14px;
+}
+.pill {
+  display: inline-block;
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(59,130,246,.16);
+  color: #bfd8ff;
+}
 @media (max-width: 980px) {
   .topbar {
     grid-template-columns: 1fr 1fr;
@@ -185,22 +212,22 @@ iframe {
     <div class="metric">
       <div class="label">Режим</div>
       <div class="value">Terminal</div>
-      <div class="sub">Telegram Mini App</div>
+      <div class="sub">Работа без сервера</div>
     </div>
     <div class="metric">
       <div class="label">Основной рынок</div>
       <div class="value">BTC/USDT</div>
-      <div class="sub">Live chart view</div>
+      <div class="sub">TradingView chart</div>
     </div>
     <div class="metric">
-      <div class="label">Базовый баланс</div>
-      <div class="value">10000.00 USDT</div>
-      <div class="sub">Демо-старт</div>
+      <div class="label">Состояние</div>
+      <div class="value">Активен</div>
+      <div class="sub">Mini App не закрывается</div>
     </div>
     <div class="metric">
-      <div class="label">Статус</div>
-      <div class="value">Online</div>
-      <div class="sub">Mini App connected</div>
+      <div class="label">Отправка</div>
+      <div class="value">Через бот</div>
+      <div class="sub">Ответы приходят в Telegram</div>
     </div>
   </div>
 
@@ -224,11 +251,14 @@ iframe {
         </iframe>
       </div>
 
-      <div class="card tab-card" id="portfolio">
-        <h3>Портфель</h3>
-        <div class="small-note">Нажми кнопку, чтобы бот прислал портфель в чат красиво по столбикам.</div>
-        <div style="margin-top:10px;">
-          <button class="action" type="button" onclick="requestPortfolio()">Обновить портфель</button>
+      <div class="card">
+        <h3>Журнал действий</h3>
+        <div class="small-note">Сюда записываются все действия, отправленные из миниаппа.</div>
+        <div id="activityLog" class="log-list" style="margin-top:12px;">
+          <div class="log-item">
+            <div class="log-type">Система</div>
+            <div class="log-text">Миниапп готов к работе.</div>
+          </div>
         </div>
       </div>
     </div>
@@ -262,6 +292,14 @@ iframe {
         <div class="grid-2" style="margin-top:10px;">
           <button class="action buy-btn" type="button" onclick="sendTrade()">Открыть ордер</button>
           <button class="action" type="button" onclick="fillDemoPrice()">Подставить цену</button>
+        </div>
+      </div>
+
+      <div class="card tab-card" id="portfolio" style="display:none;">
+        <h3>Портфель</h3>
+        <div class="small-note">Портфель приходит сообщением в чат, чтобы все работало без сервера.</div>
+        <div style="margin-top:10px;">
+          <button class="action" type="button" onclick="requestPortfolio()">Обновить портфель</button>
         </div>
       </div>
 
@@ -324,6 +362,7 @@ iframe {
 <script>
 const tg = window.Telegram?.WebApp ?? null;
 const statusBox = document.getElementById("statusBox");
+const activityLog = document.getElementById("activityLog");
 const coins = [
   "BTC","ETH","BNB","SOL","XRP","ADA","DOGE","TRX",
   "TON","LTC","MATIC","DOT","AVAX","LINK","BCH","USDT"
@@ -347,6 +386,16 @@ function showStatus(text) {
   statusBox.style.display = "block";
 }
 
+function addLog(type, text) {
+  const item = document.createElement("div");
+  item.className = "log-item";
+  item.innerHTML = `
+    <div class="log-type">${type}</div>
+    <div class="log-text">${text}</div>
+  `;
+  activityLog.prepend(item);
+}
+
 function showTab(id) {
   document.querySelectorAll(".tab-card").forEach(el => {
     el.style.display = el.id === id ? "block" : "none";
@@ -356,6 +405,7 @@ function showTab(id) {
 function fillDemoPrice() {
   const coin = document.getElementById("coin").value;
   document.getElementById("price").value = basePrices[coin] || 1;
+  showStatus(`Цена для ${coin} подставлена.`);
 }
 
 function readPositiveNumber(id, label) {
@@ -374,62 +424,116 @@ function readText(id, label, maxLength) {
   return value;
 }
 
-function sendPayload(payload, successText) {
+function sendPayload(payload, successText, logType, logText) {
   if (!tg) {
     showStatus("Миниапп открыт вне Telegram.");
+    addLog("Ошибка", "Данные не отправлены, потому что миниапп открыт вне Telegram.");
     return;
   }
   tg.sendData(JSON.stringify(payload));
   showStatus(successText);
+  addLog(logType, logText);
 }
 
 function sendTrade() {
   try {
-    sendPayload({
-      action: "trade",
-      coin: document.getElementById("coin").value,
-      direction: document.getElementById("direction").value,
-      amount: readPositiveNumber("amount", "Количество"),
-      price: readPositiveNumber("price", "Цена"),
-      take_profit: document.getElementById("take_profit").value.trim(),
-      stop_loss: document.getElementById("stop_loss").value.trim()
-    }, "Ордер отправлен. Миниапп остается открытым.");
-  } catch (e) {}
+    const coin = document.getElementById("coin").value;
+    const direction = document.getElementById("direction").value;
+    const amount = readPositiveNumber("amount", "Количество");
+    const price = readPositiveNumber("price", "Цена");
+
+    sendPayload(
+      {
+        action: "trade",
+        coin,
+        direction,
+        amount,
+        price,
+        take_profit: document.getElementById("take_profit").value.trim(),
+        stop_loss: document.getElementById("stop_loss").value.trim()
+      },
+      "Ордер отправлен. Миниапп остается открытым.",
+      "Сделка",
+      `${coin}/USDT | ${direction} | ${amount} по цене ${price}`
+    );
+  } catch (e) {
+    showStatus(e.message);
+    addLog("Ошибка", e.message);
+  }
 }
 
 function sendDeposit() {
   try {
-    sendPayload({
-      action: "deposit",
-      amount: readPositiveNumber("dep_amount", "Сумма"),
-      currency: document.getElementById("dep_currency").value,
-      method: document.getElementById("dep_method").value
-    }, "Заявка на пополнение отправлена.");
-  } catch (e) {}
+    const amount = readPositiveNumber("dep_amount", "Сумма");
+    const currency = document.getElementById("dep_currency").value;
+    const method = document.getElementById("dep_method").value;
+
+    sendPayload(
+      {
+        action: "deposit",
+        amount,
+        currency,
+        method
+      },
+      "Заявка на пополнение отправлена.",
+      "Пополнение",
+      `${amount} ${currency} | метод: ${method}`
+    );
+  } catch (e) {
+    showStatus(e.message);
+    addLog("Ошибка", e.message);
+  }
 }
 
 function sendWithdraw() {
   try {
-    sendPayload({
-      action: "withdraw",
-      amount: readPositiveNumber("w_amount", "Сумма"),
-      currency: document.getElementById("w_currency").value,
-      wallet: readText("w_wallet", "Кошелек", 128)
-    }, "Заявка на вывод отправлена.");
-  } catch (e) {}
+    const amount = readPositiveNumber("w_amount", "Сумма");
+    const currency = document.getElementById("w_currency").value;
+    const wallet = readText("w_wallet", "Кошелек", 128);
+
+    sendPayload(
+      {
+        action: "withdraw",
+        amount,
+        currency,
+        wallet
+      },
+      "Заявка на вывод отправлена.",
+      "Вывод",
+      `${amount} ${currency} -> ${wallet}`
+    );
+  } catch (e) {
+    showStatus(e.message);
+    addLog("Ошибка", e.message);
+  }
 }
 
 function sendSupport() {
   try {
-    sendPayload({
-      action: "support",
-      message: readText("support_text", "Сообщение", 1000)
-    }, "Сообщение отправлено в поддержку.");
-  } catch (e) {}
+    const message = readText("support_text", "Сообщение", 1000);
+
+    sendPayload(
+      {
+        action: "support",
+        message
+      },
+      "Сообщение отправлено в поддержку.",
+      "Поддержка",
+      message
+    );
+  } catch (e) {
+    showStatus(e.message);
+    addLog("Ошибка", e.message);
+  }
 }
 
 function requestPortfolio() {
-  sendPayload({ action: "portfolio" }, "Запрос на обновление портфеля отправлен.");
+  sendPayload(
+    { action: "portfolio" },
+    "Запрос на обновление портфеля отправлен в бот.",
+    "Портфель",
+    "Отправлен запрос на получение актуального портфеля в чат."
+  );
 }
 
 function renderMarket() {
