@@ -7,9 +7,10 @@
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
 :root {
-  --bg: #0a0f1c;
-  --panel: #11192b;
-  --panel-2: #17233b;
+  --bg: #09111d;
+  --panel: #101a2b;
+  --panel-2: #16233a;
+  --panel-3: #0d1524;
   --border: #253452;
   --text: #edf3ff;
   --muted: #92a2c5;
@@ -17,7 +18,6 @@
   --accent-2: #2563eb;
   --green: #16a34a;
   --red: #dc2626;
-  --warn: #f59e0b;
 }
 * { box-sizing: border-box; }
 html, body { min-height: 100%; }
@@ -27,13 +27,13 @@ body {
   color: var(--text);
   font-family: Arial, sans-serif;
   background:
-    radial-gradient(circle at top left, rgba(59,130,246,.18), transparent 28%),
-    radial-gradient(circle at bottom right, rgba(22,163,74,.08), transparent 24%),
-    linear-gradient(180deg, #0a0f1c 0%, #101827 100%);
+    radial-gradient(circle at top left, rgba(59,130,246,.20), transparent 28%),
+    radial-gradient(circle at bottom right, rgba(34,197,94,.10), transparent 24%),
+    linear-gradient(180deg, #09111d 0%, #101827 100%);
 }
 .shell {
   width: 100%;
-  max-width: 1280px;
+  max-width: 1320px;
   min-height: calc(100vh - 24px);
   margin: 0 auto;
 }
@@ -43,7 +43,7 @@ body {
   padding: 12px 14px;
   border: 1px solid var(--border);
   border-radius: 14px;
-  background: linear-gradient(180deg, rgba(17,25,43,.98), rgba(13,20,34,.98));
+  background: linear-gradient(180deg, rgba(16,26,43,.98), rgba(13,21,36,.98));
   color: var(--text);
 }
 .topbar {
@@ -54,26 +54,41 @@ body {
 }
 .metric, .card {
   border: 1px solid var(--border);
-  border-radius: 18px;
-  background: linear-gradient(180deg, rgba(17,25,43,.98), rgba(13,20,34,.98));
-  box-shadow: 0 14px 40px rgba(0,0,0,.35);
+  border-radius: 20px;
+  background: linear-gradient(180deg, rgba(16,26,43,.98), rgba(13,21,36,.98));
+  box-shadow: 0 18px 44px rgba(0,0,0,.34);
 }
 .metric {
-  padding: 14px 16px;
+  padding: 16px;
 }
 .metric .label {
   color: var(--muted);
   font-size: 12px;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
 .metric .value {
-  font-size: 22px;
+  font-size: 24px;
   font-weight: 700;
 }
 .metric .sub {
   color: var(--muted);
   font-size: 12px;
   margin-top: 6px;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.logo {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #3b82f6, #2563eb);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
 }
 .tabbar {
   display: flex;
@@ -85,7 +100,7 @@ body {
 .tabbar::-webkit-scrollbar { display: none; }
 .tabbar button, button.action {
   border: none;
-  border-radius: 12px;
+  border-radius: 14px;
   background: linear-gradient(180deg, var(--accent), var(--accent-2));
   color: #fff;
   padding: 12px 16px;
@@ -94,10 +109,11 @@ body {
   font-size: 14px;
 }
 .tabbar button {
-  flex: 1 0 180px;
+  flex: 1 0 190px;
+  font-weight: 600;
 }
 .card {
-  padding: 16px;
+  padding: 18px;
   margin-bottom: 12px;
 }
 .card h3 {
@@ -106,7 +122,7 @@ body {
 }
 .grid-main {
   display: grid;
-  grid-template-columns: 1.4fr 1fr;
+  grid-template-columns: 1.45fr 1fr;
   gap: 12px;
 }
 .grid-2 {
@@ -119,7 +135,7 @@ input, select, textarea {
   margin: 7px 0;
   padding: 14px;
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 14px;
   outline: none;
   color: var(--text);
   background: var(--panel-2);
@@ -133,7 +149,7 @@ iframe {
   width: 100%;
   height: 430px;
   border: 1px solid var(--border);
-  border-radius: 14px;
+  border-radius: 16px;
   background: #0b0f18;
 }
 .table {
@@ -156,6 +172,9 @@ iframe {
 .sell-btn {
   background: linear-gradient(180deg, #dc2626, #b91c1c) !important;
 }
+.neutral-btn {
+  background: linear-gradient(180deg, #334155, #1e293b) !important;
+}
 .small-note {
   color: var(--muted);
   font-size: 12px;
@@ -166,9 +185,9 @@ iframe {
 }
 .log-item {
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 14px;
   padding: 12px;
-  background: rgba(23,35,59,.8);
+  background: rgba(22,35,58,.8);
 }
 .log-type {
   font-size: 12px;
@@ -177,14 +196,16 @@ iframe {
 }
 .log-text {
   font-size: 14px;
+  line-height: 1.45;
 }
-.pill {
+.chip {
   display: inline-block;
-  font-size: 12px;
-  padding: 4px 8px;
+  padding: 5px 10px;
   border-radius: 999px;
   background: rgba(59,130,246,.16);
-  color: #bfd8ff;
+  color: #bfdbfe;
+  font-size: 12px;
+  margin-bottom: 8px;
 }
 @media (max-width: 980px) {
   .topbar {
@@ -210,39 +231,45 @@ iframe {
 
   <div class="topbar">
     <div class="metric">
-      <div class="label">Режим</div>
-      <div class="value">Terminal</div>
-      <div class="sub">Работа без сервера</div>
+      <div class="brand">
+        <div class="logo">TG</div>
+        <div>
+          <div class="label">Платформа</div>
+          <div class="value">Trade Guard</div>
+          <div class="sub">Telegram Trading Terminal</div>
+        </div>
+      </div>
     </div>
     <div class="metric">
-      <div class="label">Основной рынок</div>
+      <div class="label">Рынок</div>
       <div class="value">BTC/USDT</div>
-      <div class="sub">TradingView chart</div>
+      <div class="sub">График и демо-торговля</div>
     </div>
     <div class="metric">
-      <div class="label">Состояние</div>
-      <div class="value">Активен</div>
-      <div class="sub">Mini App не закрывается</div>
+      <div class="label">Статус</div>
+      <div class="value">Online</div>
+      <div class="sub">Mini App активен</div>
     </div>
     <div class="metric">
-      <div class="label">Отправка</div>
-      <div class="value">Через бот</div>
-      <div class="sub">Ответы приходят в Telegram</div>
+      <div class="label">Режим</div>
+      <div class="value">Local</div>
+      <div class="sub">Без внешнего сервера</div>
     </div>
   </div>
 
   <div class="tabbar">
-    <button type="button" onclick="showTab('trade')">Торговля</button>
-    <button type="button" onclick="showTab('portfolio')">Портфель</button>
-    <button type="button" onclick="showTab('deposit')">Пополнение</button>
-    <button type="button" onclick="showTab('withdraw')">Вывод</button>
-    <button type="button" onclick="showTab('support')">Техподдержка</button>
+    <button type="button" onclick="showTab('trade')">📊 Торговля</button>
+    <button type="button" onclick="showTab('portfolio')">💼 Портфель</button>
+    <button type="button" onclick="showTab('deposit')">💳 Пополнение</button>
+    <button type="button" onclick="showTab('withdraw')">💸 Вывод</button>
+    <button type="button" onclick="showTab('support')">🛟 Поддержка</button>
   </div>
 
   <div class="grid-main">
     <div>
       <div class="card">
-        <h3>График BTC/USDT</h3>
+        <div class="chip">Live chart</div>
+        <h3>BTC/USDT</h3>
         <iframe
           title="BTC/USDT chart"
           loading="lazy"
@@ -252,12 +279,13 @@ iframe {
       </div>
 
       <div class="card">
+        <div class="chip">Activity</div>
         <h3>Журнал действий</h3>
-        <div class="small-note">Сюда записываются все действия, отправленные из миниаппа.</div>
+        <div class="small-note">Миниапп не закрывается после отправки и сохраняет локальную историю действий.</div>
         <div id="activityLog" class="log-list" style="margin-top:12px;">
           <div class="log-item">
             <div class="log-type">Система</div>
-            <div class="log-text">Миниапп готов к работе.</div>
+            <div class="log-text">Терминал готов к работе.</div>
           </div>
         </div>
       </div>
@@ -265,17 +293,30 @@ iframe {
 
     <div>
       <div class="card tab-card" id="trade">
+        <div class="chip">Orders</div>
         <h3>Открыть сделку</h3>
+
         <div class="grid-2">
           <select id="coin">
-            <option>BTC</option><option>ETH</option><option>BNB</option><option>SOL</option>
-            <option>XRP</option><option>ADA</option><option>DOGE</option><option>TRX</option>
-            <option>TON</option><option>LTC</option><option>MATIC</option><option>DOT</option>
-            <option>AVAX</option><option>LINK</option><option>BCH</option>
+            <option>🟠 BTC</option>
+            <option>💠 ETH</option>
+            <option>🟡 BNB</option>
+            <option>🟣 SOL</option>
+            <option>🔵 XRP</option>
+            <option>🔷 ADA</option>
+            <option>🐶 DOGE</option>
+            <option>🔺 TRX</option>
+            <option>💎 TON</option>
+            <option>⚪ LTC</option>
+            <option>🟪 MATIC</option>
+            <option>⚫ DOT</option>
+            <option>🔻 AVAX</option>
+            <option>🔗 LINK</option>
+            <option>🟫 BCH</option>
           </select>
           <select id="direction">
-            <option value="long">Long</option>
-            <option value="short">Short</option>
+            <option value="long">🟢 Long</option>
+            <option value="short">🔴 Short</option>
           </select>
         </div>
 
@@ -290,59 +331,69 @@ iframe {
         </div>
 
         <div class="grid-2" style="margin-top:10px;">
-          <button class="action buy-btn" type="button" onclick="sendTrade()">Открыть ордер</button>
-          <button class="action" type="button" onclick="fillDemoPrice()">Подставить цену</button>
+          <button class="action buy-btn" type="button" onclick="sendTrade()">🟢 Открыть ордер</button>
+          <button class="action neutral-btn" type="button" onclick="fillDemoPrice()">⚙ Подставить цену</button>
         </div>
       </div>
 
       <div class="card tab-card" id="portfolio" style="display:none;">
+        <div class="chip">Balances</div>
         <h3>Портфель</h3>
-        <div class="small-note">Портфель приходит сообщением в чат, чтобы все работало без сервера.</div>
+        <div class="small-note">Обновленный портфель приходит красивым сообщением в чат бота.</div>
         <div style="margin-top:10px;">
-          <button class="action" type="button" onclick="requestPortfolio()">Обновить портфель</button>
+          <button class="action" type="button" onclick="requestPortfolio()">💼 Обновить портфель</button>
         </div>
       </div>
 
       <div class="card tab-card" id="deposit" style="display:none;">
+        <div class="chip">Funding</div>
         <h3>Пополнение</h3>
+
         <div class="grid-2">
           <input id="dep_amount" type="number" min="0.01" step="0.01" placeholder="Сумма" value="100">
           <select id="dep_currency">
-            <option>USDT</option><option>BTC</option><option>ETH</option><option>BNB</option>
-            <option>SOL</option><option>XRP</option><option>ADA</option><option>DOGE</option>
-            <option>TRX</option><option>TON</option><option>LTC</option><option>MATIC</option>
-            <option>DOT</option><option>AVAX</option><option>LINK</option><option>BCH</option>
+            <option>💵 USDT</option><option>🟠 BTC</option><option>💠 ETH</option><option>🟡 BNB</option>
+            <option>🟣 SOL</option><option>🔵 XRP</option><option>🔷 ADA</option><option>🐶 DOGE</option>
+            <option>🔺 TRX</option><option>💎 TON</option><option>⚪ LTC</option><option>🟪 MATIC</option>
+            <option>⚫ DOT</option><option>🔻 AVAX</option><option>🔗 LINK</option><option>🟫 BCH</option>
           </select>
         </div>
+
         <select id="dep_method">
           <option value="crypto">Crypto</option>
           <option value="card">Карта</option>
         </select>
-        <button class="action" type="button" onclick="sendDeposit()">Создать заявку</button>
+
+        <button class="action" type="button" onclick="sendDeposit()">💳 Создать заявку</button>
       </div>
 
       <div class="card tab-card" id="withdraw" style="display:none;">
+        <div class="chip">Withdraw</div>
         <h3>Вывод</h3>
+
         <div class="grid-2">
           <input id="w_amount" type="number" min="0.01" step="0.01" placeholder="Сумма" value="10">
           <select id="w_currency">
-            <option>USDT</option><option>BTC</option><option>ETH</option><option>BNB</option>
-            <option>SOL</option><option>XRP</option><option>ADA</option><option>DOGE</option>
-            <option>TRX</option><option>TON</option><option>LTC</option><option>MATIC</option>
-            <option>DOT</option><option>AVAX</option><option>LINK</option><option>BCH</option>
+            <option>💵 USDT</option><option>🟠 BTC</option><option>💠 ETH</option><option>🟡 BNB</option>
+            <option>🟣 SOL</option><option>🔵 XRP</option><option>🔷 ADA</option><option>🐶 DOGE</option>
+            <option>🔺 TRX</option><option>💎 TON</option><option>⚪ LTC</option><option>🟪 MATIC</option>
+            <option>⚫ DOT</option><option>🔻 AVAX</option><option>🔗 LINK</option><option>🟫 BCH</option>
           </select>
         </div>
+
         <input id="w_wallet" type="text" maxlength="128" placeholder="Кошелек / адрес вывода">
-        <button class="action sell-btn" type="button" onclick="sendWithdraw()">Создать заявку</button>
+        <button class="action sell-btn" type="button" onclick="sendWithdraw()">💸 Создать заявку</button>
       </div>
 
       <div class="card tab-card" id="support" style="display:none;">
+        <div class="chip">Support</div>
         <h3>Техподдержка</h3>
         <textarea id="support_text" maxlength="1000" placeholder="Опишите проблему"></textarea>
-        <button class="action" type="button" onclick="sendSupport()">Отправить</button>
+        <button class="action" type="button" onclick="sendSupport()">🛟 Отправить</button>
       </div>
 
       <div class="card">
+        <div class="chip">Market</div>
         <h3>Обзор рынка</h3>
         <table class="table">
           <thead>
@@ -363,15 +414,24 @@ iframe {
 const tg = window.Telegram?.WebApp ?? null;
 const statusBox = document.getElementById("statusBox");
 const activityLog = document.getElementById("activityLog");
+
 const coins = [
-  "BTC","ETH","BNB","SOL","XRP","ADA","DOGE","TRX",
-  "TON","LTC","MATIC","DOT","AVAX","LINK","BCH","USDT"
+  { label: "🟠 BTC", value: "BTC", price: 72000 },
+  { label: "💠 ETH", value: "ETH", price: 3800 },
+  { label: "🟡 BNB", value: "BNB", price: 620 },
+  { label: "🟣 SOL", value: "SOL", price: 170 },
+  { label: "🔵 XRP", value: "XRP", price: 0.62 },
+  { label: "🔷 ADA", value: "ADA", price: 0.74 },
+  { label: "🐶 DOGE", value: "DOGE", price: 0.18 },
+  { label: "🔺 TRX", value: "TRX", price: 0.13 },
+  { label: "💎 TON", value: "TON", price: 6.3 },
+  { label: "⚪ LTC", value: "LTC", price: 84 },
+  { label: "🟪 MATIC", value: "MATIC", price: 1.05 },
+  { label: "⚫ DOT", value: "DOT", price: 8.6 },
+  { label: "🔻 AVAX", value: "AVAX", price: 41 },
+  { label: "🔗 LINK", value: "LINK", price: 19 },
+  { label: "🟫 BCH", value: "BCH", price: 510 },
 ];
-const basePrices = {
-  USDT: 1.0, BTC: 72000, ETH: 3800, BNB: 620, SOL: 170, XRP: 0.62,
-  ADA: 0.74, DOGE: 0.18, TRX: 0.13, TON: 6.3, LTC: 84, MATIC: 1.05,
-  DOT: 8.6, AVAX: 41, LINK: 19, BCH: 510
-};
 
 if (tg) {
   tg.ready();
@@ -402,9 +462,14 @@ function showTab(id) {
   });
 }
 
+function selectedCoinValue(raw) {
+  return raw.split(" ").pop().trim();
+}
+
 function fillDemoPrice() {
-  const coin = document.getElementById("coin").value;
-  document.getElementById("price").value = basePrices[coin] || 1;
+  const coin = selectedCoinValue(document.getElementById("coin").value);
+  const found = coins.find(c => c.value === coin);
+  document.getElementById("price").value = found ? found.price : 1;
   showStatus(`Цена для ${coin} подставлена.`);
 }
 
@@ -437,7 +502,8 @@ function sendPayload(payload, successText, logType, logText) {
 
 function sendTrade() {
   try {
-    const coin = document.getElementById("coin").value;
+    const coinRaw = document.getElementById("coin").value;
+    const coin = selectedCoinValue(coinRaw);
     const direction = document.getElementById("direction").value;
     const amount = readPositiveNumber("amount", "Количество");
     const price = readPositiveNumber("price", "Цена");
@@ -453,8 +519,8 @@ function sendTrade() {
         stop_loss: document.getElementById("stop_loss").value.trim()
       },
       "Ордер отправлен. Миниапп остается открытым.",
-      "Сделка",
-      `${coin}/USDT | ${direction} | ${amount} по цене ${price}`
+      "📊 Сделка",
+      `${coinRaw} | ${direction} | ${amount} по цене ${price}`
     );
   } catch (e) {
     showStatus(e.message);
@@ -464,8 +530,9 @@ function sendTrade() {
 
 function sendDeposit() {
   try {
+    const raw = document.getElementById("dep_currency").value;
+    const currency = selectedCoinValue(raw);
     const amount = readPositiveNumber("dep_amount", "Сумма");
-    const currency = document.getElementById("dep_currency").value;
     const method = document.getElementById("dep_method").value;
 
     sendPayload(
@@ -476,8 +543,8 @@ function sendDeposit() {
         method
       },
       "Заявка на пополнение отправлена.",
-      "Пополнение",
-      `${amount} ${currency} | метод: ${method}`
+      "💳 Пополнение",
+      `${raw} | ${amount} | метод: ${method}`
     );
   } catch (e) {
     showStatus(e.message);
@@ -487,8 +554,9 @@ function sendDeposit() {
 
 function sendWithdraw() {
   try {
+    const raw = document.getElementById("w_currency").value;
+    const currency = selectedCoinValue(raw);
     const amount = readPositiveNumber("w_amount", "Сумма");
-    const currency = document.getElementById("w_currency").value;
     const wallet = readText("w_wallet", "Кошелек", 128);
 
     sendPayload(
@@ -499,8 +567,8 @@ function sendWithdraw() {
         wallet
       },
       "Заявка на вывод отправлена.",
-      "Вывод",
-      `${amount} ${currency} -> ${wallet}`
+      "💸 Вывод",
+      `${raw} | ${amount} -> ${wallet}`
     );
   } catch (e) {
     showStatus(e.message);
@@ -518,7 +586,7 @@ function sendSupport() {
         message
       },
       "Сообщение отправлено в поддержку.",
-      "Поддержка",
+      "🛟 Поддержка",
       message
     );
   } catch (e) {
@@ -530,8 +598,8 @@ function sendSupport() {
 function requestPortfolio() {
   sendPayload(
     { action: "portfolio" },
-    "Запрос на обновление портфеля отправлен в бот.",
-    "Портфель",
+    "Запрос на обновление портфеля отправлен.",
+    "💼 Портфель",
     "Отправлен запрос на получение актуального портфеля в чат."
   );
 }
@@ -539,13 +607,12 @@ function requestPortfolio() {
 function renderMarket() {
   const tbody = document.getElementById("marketTable");
   tbody.innerHTML = "";
-  coins.filter(c => c !== "USDT").forEach((coin, idx) => {
-    const price = basePrices[coin];
+  coins.forEach((coin, idx) => {
     const delta = ((idx % 2 === 0 ? 1 : -1) * (idx + 1) * 0.7).toFixed(2);
     const tr = document.createElement("tr");
     tr.innerHTML = `
-      <td>${coin}/USDT</td>
-      <td>${price}</td>
+      <td>${coin.label}/USDT</td>
+      <td>${coin.price}</td>
       <td style="color:${delta >= 0 ? '#16a34a' : '#dc2626'}">${delta}%</td>
     `;
     tbody.appendChild(tr);
