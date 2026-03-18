@@ -77,9 +77,7 @@ body {
   font-size: 13px;
   color: var(--text);
 }
-.main {
-  min-width: 0;
-}
+.main { min-width: 0; }
 .topbar {
   display: grid;
   grid-template-columns: 1.2fr 1fr 1fr 1fr;
@@ -118,42 +116,53 @@ body {
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
 input, select, textarea {
-  width: 100%; margin: 7px 0; padding: 14px; border: 1px solid var(--border);
-  border-radius: 14px; outline: none; color: var(--text); background: var(--panel-2); font-size: 15px;
+  width: 100%;
+  margin: 7px 0;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  outline: none;
+  color: var(--text);
+  background: var(--panel-2);
+  font-size: 15px;
 }
-textarea {
-  resize: vertical;
-  min-height: 120px;
-}
+textarea { resize: vertical; min-height: 120px; }
 iframe {
-  width: 100%; height: 430px; border: 1px solid var(--border);
-  border-radius: 16px; background: #0b0f18;
+  width: 100%;
+  height: 430px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: #0b0f18;
 }
-.small-note { color: var(--muted); font-size: 12px; }
 .log-list { display: grid; gap: 8px; }
 .log-item, .info-card {
-  border: 1px solid var(--border); border-radius: 14px; padding: 12px; background: rgba(22,35,58,.8);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 12px;
+  background: rgba(22,35,58,.8);
 }
 .log-type { font-size: 12px; color: var(--muted); margin-bottom: 4px; }
 .log-text { font-size: 14px; line-height: 1.45; }
 .chip {
-  display: inline-block; padding: 5px 10px; border-radius: 999px;
-  background: rgba(59,130,246,.16); color: #bfdbfe; font-size: 12px; margin-bottom: 8px;
+  display: inline-block;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: rgba(59,130,246,.16);
+  color: #bfdbfe;
+  font-size: 12px;
+  margin-bottom: 8px;
 }
 .table { width: 100%; border-collapse: collapse; }
 .table th, .table td {
-  padding: 10px 8px; border-bottom: 1px solid rgba(37,52,82,.75); text-align: left; font-size: 13px;
+  padding: 10px 8px;
+  border-bottom: 1px solid rgba(37,52,82,.75);
+  text-align: left;
+  font-size: 13px;
 }
 .table th { color: var(--muted); font-weight: 600; }
-.buy-btn {
-  background: linear-gradient(180deg, #16a34a, #15803d) !important;
-}
-.sell-btn {
-  background: linear-gradient(180deg, #dc2626, #b91c1c) !important;
-}
-.neutral-btn, .quick-btn {
-  background: linear-gradient(180deg, #334155, #1e293b) !important;
-}
+.buy-btn { background: linear-gradient(180deg, #16a34a, #15803d) !important; }
+.sell-btn { background: linear-gradient(180deg, #dc2626, #b91c1c) !important; }
+.neutral-btn, .quick-btn { background: linear-gradient(180deg, #334155, #1e293b) !important; }
 @keyframes scrollDown {
   0% { transform: translateY(-35%); }
   100% { transform: translateY(0%); }
@@ -431,6 +440,11 @@ function sendTrade() {
   const amount = Number(document.getElementById("amount").value);
   const price = Number(document.getElementById("price").value);
 
+  if (!coin || !amount || !price) {
+    showStatus("Заполни параметры сделки.");
+    return;
+  }
+
   sendPayload(
     {
       action: "trade",
@@ -457,38 +471,61 @@ function requestPortfolio() {
 }
 
 function sendDeposit() {
+  const amount = Number(document.getElementById("dep_amount").value);
+  const currency = document.getElementById("dep_currency").value;
+
+  if (!currency || !amount) {
+    showStatus("Укажи сумму пополнения.");
+    return;
+  }
+
   sendPayload(
     {
       action: "deposit",
-      currency: document.getElementById("dep_currency").value,
-      amount: Number(document.getElementById("dep_amount").value),
+      currency,
+      amount,
       method: "manual"
     },
     "Заявка на пополнение отправлена.",
     "Пополнение",
-    "Создана заявка на пополнение"
+    `${currency} ${amount}`
   );
 }
 
 function sendWithdraw() {
+  const amount = Number(document.getElementById("w_amount").value);
+  const currency = document.getElementById("w_currency").value;
+  const wallet = document.getElementById("w_wallet").value.trim();
+
+  if (!currency || !amount || !wallet) {
+    showStatus("Заполни данные для вывода.");
+    return;
+  }
+
   sendPayload(
     {
       action: "withdraw",
-      currency: document.getElementById("w_currency").value,
-      amount: Number(document.getElementById("w_amount").value),
-      wallet: document.getElementById("w_wallet").value.trim()
+      currency,
+      amount,
+      wallet
     },
     "Заявка на вывод отправлена.",
     "Вывод",
-    "Создана заявка на вывод"
+    `${currency} ${amount} -> ${wallet}`
   );
 }
 
 function sendSupport() {
+  const message = document.getElementById("support_text").value.trim();
+  if (!message) {
+    showStatus("Напиши сообщение в поддержку.");
+    return;
+  }
+
   sendPayload(
     {
       action: "support",
-      message: document.getElementById("support_text").value.trim()
+      message
     },
     "Сообщение отправлено.",
     "Поддержка",
