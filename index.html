@@ -198,12 +198,12 @@ iframe {
         <div class="metric">
           <div class="label">Рынок</div>
           <div class="value" id="topbarPair">BTC/USDT</div>
-          <div class="sub">Управление через mini app</div>
+          <div class="sub">Финальная локальная сборка</div>
         </div>
         <div class="metric">
           <div class="label">Статус</div>
           <div class="value">Online</div>
-          <div class="sub">Выбор реквизитов в miniapp</div>
+          <div class="sub">Антидубли и фильтрация реквизитов</div>
         </div>
         <div class="metric">
           <div class="label">Режим</div>
@@ -274,7 +274,7 @@ iframe {
           <div class="card tab-card" id="portfolio" style="display:none;">
             <div class="chip">Portfolio</div>
             <h3>Портфель</h3>
-            <div class="info-card">Запросить актуальный портфель в чат.</div>
+            <div class="info-card">В ответе бота теперь будет и баланс, и история последних заявок.</div>
             <button class="action" type="button" onclick="requestPortfolio()">💼 Обновить портфель</button>
           </div>
 
@@ -298,6 +298,7 @@ iframe {
               <select id="w_currency"></select>
             </div>
             <input id="w_wallet" type="text" maxlength="128" placeholder="Кошелек / адрес вывода">
+            <div class="info-card">Вывод доступен только для верифицированных аккаунтов.</div>
             <button class="action sell-btn" type="button" onclick="sendWithdraw()">💸 Создать заявку</button>
           </div>
 
@@ -359,14 +360,20 @@ const coins = [
   { emoji: "💵", value: "USDT", price: 1 }
 ];
 
-const depositRequisites = [
-  { title: "USDT TRC20", description: "TRON network" },
-  { title: "USDT TON", description: "TON network" },
-  { title: "USDT BEP20", description: "BSC network" },
-  { title: "BTC", description: "Bitcoin network" },
-  { title: "ETH", description: "Ethereum network" },
-  { title: "СБП", description: "Bank transfer" }
-];
+const requisiteMap = {
+  USDT: [
+    { title: "USDT TRC20", description: "TRON network" },
+    { title: "USDT TON", description: "TON network" },
+    { title: "USDT BEP20", description: "BSC network" },
+    { title: "СБП", description: "Bank transfer" }
+  ],
+  BTC: [
+    { title: "BTC", description: "Bitcoin network" }
+  ],
+  ETH: [
+    { title: "ETH", description: "Ethereum network" }
+  ]
+};
 
 if (tg) {
   tg.ready();
@@ -470,9 +477,38 @@ function requestPortfolio() {
   );
 }
 
+function updateDepositRequisites() {
+  const asset = document.getElementById("dep_currency").value;
+  const select = document.getElementById("dep_requisite");
+  const preview = document.getElementById("depPreview");
+  const options = requisiteMap[asset] || [];
+
+  select.innerHTML = "";
+
+  if (!options.length) {
+    const option = document.createElement("option");
+    option.value = "";
+    option.textContent = "Нет доступных реквизитов";
+    select.appendChild(option);
+    preview.textContent = `Для ${asset} нет настроенных вариантов в miniapp.`;
+    return;
+  }
+
+  options.forEach(item => {
+    const option = document.createElement("option");
+    option.value = item.title;
+    option.textContent = `💳 ${item.title}`;
+    select.appendChild(option);
+  });
+
+  updateDepositPreview();
+}
+
 function updateDepositPreview() {
+  const asset = document.getElementById("dep_currency").value;
   const title = document.getElementById("dep_requisite").value;
-  const found = depositRequisites.find(r => r.title === title);
+  const options = requisiteMap[asset] || [];
+  const found = options.find(item => item.title === title);
   document.getElementById("depPreview").textContent = found
     ? `Выбран реквизит: ${found.title} (${found.description})`
     : "Выбери реквизит для оплаты.";
@@ -576,19 +612,6 @@ function fillSelect(selectId, includeUsdt = false) {
     });
 }
 
-function fillRequisites() {
-  const select = document.getElementById("dep_requisite");
-  select.innerHTML = "";
-  depositRequisites.forEach(r => {
-    const option = document.createElement("option");
-    option.value = r.title;
-    option.textContent = `💳 ${r.title}`;
-    select.appendChild(option);
-  });
-  select.addEventListener("change", updateDepositPreview);
-  updateDepositPreview();
-}
-
 function renderSideTicker(targetId, reverse = false) {
   const target = document.getElementById(targetId);
   const repeated = [...coins, ...coins, ...coins];
@@ -611,7 +634,11 @@ document.addEventListener("DOMContentLoaded", () => {
   fillSelect("coin", false);
   fillSelect("dep_currency", true);
   fillSelect("w_currency", true);
-  fillRequisites();
+
+  document.getElementById("dep_currency").addEventListener("change", updateDepositRequisites);
+  document.getElementById("dep_requisite").addEventListener("change", updateDepositPreview);
+
+  updateDepositRequisites();
   renderMarket();
   renderSideTicker("leftTicker", false);
   renderSideTicker("rightTicker", true);
