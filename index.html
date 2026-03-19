@@ -30,12 +30,7 @@ body {
     radial-gradient(circle at bottom right, rgba(34,197,94,.10), transparent 24%),
     linear-gradient(180deg, #09111d 0%, #101827 100%);
 }
-.shell {
-  width: 100%;
-  max-width: 1440px;
-  min-height: calc(100vh - 24px);
-  margin: 0 auto;
-}
+.shell { width: 100%; max-width: 1440px; min-height: calc(100vh - 24px); margin: 0 auto; }
 .status-box {
   display: none;
   margin-bottom: 12px;
@@ -44,11 +39,7 @@ body {
   border-radius: 14px;
   background: linear-gradient(180deg, rgba(16,26,43,.98), rgba(13,21,36,.98));
 }
-.layout {
-  display: grid;
-  grid-template-columns: 92px 1fr 92px;
-  gap: 12px;
-}
+.layout { display: grid; grid-template-columns: 92px 1fr 92px; gap: 12px; }
 .side-ticker {
   position: relative;
   overflow: hidden;
@@ -65,9 +56,7 @@ body {
   padding: 10px;
   animation: scrollDown 18s linear infinite;
 }
-.side-track.reverse {
-  animation: scrollUp 18s linear infinite;
-}
+.side-track.reverse { animation: scrollUp 18s linear infinite; }
 .ticker-pill {
   border: 1px solid var(--border);
   border-radius: 14px;
@@ -214,7 +203,7 @@ iframe {
         <div class="metric">
           <div class="label">Статус</div>
           <div class="value">Online</div>
-          <div class="sub">Заявки уходят в бота</div>
+          <div class="sub">Выбор реквизитов в miniapp</div>
         </div>
         <div class="metric">
           <div class="label">Режим</div>
@@ -285,7 +274,7 @@ iframe {
           <div class="card tab-card" id="portfolio" style="display:none;">
             <div class="chip">Portfolio</div>
             <h3>Портфель</h3>
-            <div class="info-card">Запросить актуальный портфель в чат бота.</div>
+            <div class="info-card">Запросить актуальный портфель в чат.</div>
             <button class="action" type="button" onclick="requestPortfolio()">💼 Обновить портфель</button>
           </div>
 
@@ -296,7 +285,8 @@ iframe {
               <input id="dep_amount" type="number" min="0.01" step="0.01" placeholder="Сумма" value="100">
               <select id="dep_currency"></select>
             </div>
-            <div class="info-card">После отправки заявки бот предложит выбрать реквизит для оплаты.</div>
+            <select id="dep_requisite"></select>
+            <div id="depPreview" class="info-card"></div>
             <button class="action" type="button" onclick="sendDeposit()">💳 Создать заявку</button>
           </div>
 
@@ -367,6 +357,15 @@ const coins = [
   { emoji: "🔗", value: "LINK", price: 19 },
   { emoji: "🟫", value: "BCH", price: 510 },
   { emoji: "💵", value: "USDT", price: 1 }
+];
+
+const depositRequisites = [
+  { title: "USDT TRC20", description: "TRON network" },
+  { title: "USDT TON", description: "TON network" },
+  { title: "USDT BEP20", description: "BSC network" },
+  { title: "BTC", description: "Bitcoin network" },
+  { title: "ETH", description: "Ethereum network" },
+  { title: "СБП", description: "Bank transfer" }
 ];
 
 if (tg) {
@@ -471,12 +470,21 @@ function requestPortfolio() {
   );
 }
 
+function updateDepositPreview() {
+  const title = document.getElementById("dep_requisite").value;
+  const found = depositRequisites.find(r => r.title === title);
+  document.getElementById("depPreview").textContent = found
+    ? `Выбран реквизит: ${found.title} (${found.description})`
+    : "Выбери реквизит для оплаты.";
+}
+
 function sendDeposit() {
   const amount = Number(document.getElementById("dep_amount").value);
   const currency = document.getElementById("dep_currency").value;
+  const requisiteTitle = document.getElementById("dep_requisite").value;
 
-  if (!currency || !amount) {
-    showStatus("Укажи сумму пополнения.");
+  if (!currency || !amount || !requisiteTitle) {
+    showStatus("Укажи сумму и реквизит.");
     return;
   }
 
@@ -485,11 +493,11 @@ function sendDeposit() {
       action: "deposit",
       currency,
       amount,
-      method: "manual"
+      requisite_title: requisiteTitle
     },
     "Заявка на пополнение отправлена.",
     "Пополнение",
-    `${currency} ${amount}`
+    `${currency} ${amount} через ${requisiteTitle}`
   );
 }
 
@@ -568,6 +576,19 @@ function fillSelect(selectId, includeUsdt = false) {
     });
 }
 
+function fillRequisites() {
+  const select = document.getElementById("dep_requisite");
+  select.innerHTML = "";
+  depositRequisites.forEach(r => {
+    const option = document.createElement("option");
+    option.value = r.title;
+    option.textContent = `💳 ${r.title}`;
+    select.appendChild(option);
+  });
+  select.addEventListener("change", updateDepositPreview);
+  updateDepositPreview();
+}
+
 function renderSideTicker(targetId, reverse = false) {
   const target = document.getElementById(targetId);
   const repeated = [...coins, ...coins, ...coins];
@@ -590,6 +611,7 @@ document.addEventListener("DOMContentLoaded", () => {
   fillSelect("coin", false);
   fillSelect("dep_currency", true);
   fillSelect("w_currency", true);
+  fillRequisites();
   renderMarket();
   renderSideTicker("leftTicker", false);
   renderSideTicker("rightTicker", true);
