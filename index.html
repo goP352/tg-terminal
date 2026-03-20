@@ -94,11 +94,24 @@ body {
 }
 .tabbar::-webkit-scrollbar { display: none; }
 .tabbar button, button.action, button.quick-btn {
-  border: none; border-radius: 14px;
+  border: none;
+  border-radius: 14px;
   background: linear-gradient(180deg, var(--accent), var(--accent-2));
-  color: #fff; padding: 12px 16px; cursor: pointer; white-space: nowrap; font-size: 14px;
+  color: #fff;
+  padding: 12px 16px;
+  cursor: pointer;
+  white-space: nowrap;
+  font-size: 14px;
 }
 .tabbar button { flex: 1 0 165px; font-weight: 600; }
+button.quick-btn {
+  font-size: 26px !important;
+  font-weight: 800;
+  padding: 20px 16px !important;
+  min-height: 72px;
+  border-radius: 18px;
+  letter-spacing: 0.2px;
+}
 .card { padding: 18px; margin-bottom: 12px; }
 .card h3 { margin: 0 0 12px; font-size: 24px; }
 .grid-main { display: grid; grid-template-columns: 1.45fr 1fr; gap: 12px; }
@@ -203,7 +216,7 @@ iframe {
         <div class="metric">
           <div class="label">Статус</div>
           <div class="value">Online</div>
-          <div class="sub">Антидубли и фильтрация реквизитов</div>
+          <div class="sub">Меню, заявки, позиции, поддержка</div>
         </div>
         <div class="metric">
           <div class="label">Режим</div>
@@ -274,7 +287,7 @@ iframe {
           <div class="card tab-card" id="portfolio" style="display:none;">
             <div class="chip">Portfolio</div>
             <h3>Портфель</h3>
-            <div class="info-card">В ответе бота теперь будет и баланс, и история последних заявок.</div>
+            <div class="info-card">В ответе бота будут балансы, последние заявки и позиции.</div>
             <button class="action" type="button" onclick="requestPortfolio()">💼 Обновить портфель</button>
           </div>
 
