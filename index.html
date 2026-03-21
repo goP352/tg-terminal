@@ -665,6 +665,7 @@ iframe {
   </div>
 
   <div class="tabbar">
+    <button type="button" onclick="showTab('p2p')">P2P</button>
     <button type="button" onclick="showTab('trade')">Торговля</button>
     <button type="button" onclick="showTab('portfolio')">Портфель</button>
     <button type="button" onclick="showTab('deposit')">Пополнение</button>
@@ -818,6 +819,38 @@ iframe {
           <button class="action buy-btn" type="button" onclick="sendTrade()">Открыть ордер</button>
           <button class="action" type="button" onclick="fillDemoPrice()">Подставить цену</button>
         </div>
+      </div>
+
+      <div class="card tab-card" id="p2p" style="display:none;">
+        <h3>P2P Market</h3>
+        <div class="small-note">Choose offer or create your own P2P request.</div>
+        <div class="market-cards" id="p2pOffers" style="margin-top:8px;"></div>
+        <div class="grid-2" style="margin-top:8px;">
+          <select id="p2p_side">
+            <option value="buy">Buy Crypto</option>
+            <option value="sell">Sell Crypto</option>
+          </select>
+          <select id="p2p_asset">
+            <option>USDT</option><option>BTC</option><option>ETH</option><option>BNB</option>
+            <option>SOL</option><option>XRP</option><option>ADA</option><option>DOGE</option>
+            <option>TRX</option><option>TON</option><option>LTC</option><option>MATIC</option>
+            <option>DOT</option><option>AVAX</option><option>LINK</option><option>BCH</option>
+          </select>
+        </div>
+        <div class="grid-2">
+          <input id="p2p_amount" type="number" min="1" step="0.01" placeholder="Amount" value="100">
+          <input id="p2p_rate" type="number" min="0.00000001" step="0.00000001" placeholder="Rate" value="1">
+        </div>
+        <div class="grid-2">
+          <select id="p2p_fiat">
+            <option>RUB</option><option>USD</option><option>EUR</option><option>KZT</option>
+          </select>
+          <select id="p2p_method">
+            <option>SBP</option><option>Tinkoff</option><option>Sberbank</option><option>Card Transfer</option><option>Any</option>
+          </select>
+        </div>
+        <input id="p2p_note" type="text" maxlength="160" placeholder="Note (optional)">
+        <button class="action" type="button" onclick="sendP2P()">Create P2P request</button>
       </div>
 
       <div class="card tab-card" id="deposit" style="display:none;">
@@ -1010,6 +1043,13 @@ function writeSessionState(partial = null) {
       dep_amount: document.getElementById("dep_amount")?.value || "",
       dep_currency: document.getElementById("dep_currency")?.value || "USDT",
       dep_method: document.getElementById("dep_method")?.value || "crypto",
+      p2p_side: document.getElementById("p2p_side")?.value || "buy",
+      p2p_asset: document.getElementById("p2p_asset")?.value || "USDT",
+      p2p_amount: document.getElementById("p2p_amount")?.value || "",
+      p2p_rate: document.getElementById("p2p_rate")?.value || "",
+      p2p_fiat: document.getElementById("p2p_fiat")?.value || "RUB",
+      p2p_method: document.getElementById("p2p_method")?.value || "SBP",
+      p2p_note: document.getElementById("p2p_note")?.value || "",
       w_amount: document.getElementById("w_amount")?.value || "",
       w_currency: document.getElementById("w_currency")?.value || "USDT",
       w_wallet: document.getElementById("w_wallet")?.value || "",
@@ -1105,6 +1145,13 @@ function restoreSessionState() {
   setIf("dep_amount", state.dep_amount);
   setIf("dep_currency", state.dep_currency);
   setIf("dep_method", state.dep_method);
+  setIf("p2p_side", state.p2p_side);
+  setIf("p2p_asset", state.p2p_asset);
+  setIf("p2p_amount", state.p2p_amount);
+  setIf("p2p_rate", state.p2p_rate);
+  setIf("p2p_fiat", state.p2p_fiat);
+  setIf("p2p_method", state.p2p_method);
+  setIf("p2p_note", state.p2p_note);
   setIf("w_amount", state.w_amount);
   setIf("w_currency", state.w_currency);
   setIf("w_wallet", state.w_wallet);
@@ -1319,6 +1366,8 @@ function updateQuickAction(tab) {
   if (tab === "trade") {
     btn.textContent = "📈 Открыть ордер";
     btn.classList.add("buy-btn");
+  } else if (tab === "p2p") {
+    btn.textContent = "🤝 Create P2P request";
   } else if (tab === "deposit") {
     btn.textContent = "📥 Создать заявку";
   } else if (tab === "withdraw") {
@@ -1555,6 +1604,7 @@ function exportOrderFeedCsv() {
 
 function triggerPrimaryAction() {
   if (activeTab === "trade") return sendTrade();
+  if (activeTab === "p2p") return sendP2P();
   if (activeTab === "deposit") return sendDeposit();
   if (activeTab === "withdraw") return sendWithdraw();
   if (activeTab === "support") return sendSupport();
@@ -1597,6 +1647,50 @@ function sendTradeLegacy() {
       take_profit: document.getElementById("take_profit").value.trim(),
       stop_loss: document.getElementById("stop_loss").value.trim()
     }, "Ордер отправлен. Миниапп остается открытым.");
+  } catch (e) {}
+}
+
+function renderP2POffers() {
+  const box = document.getElementById("p2pOffers");
+  if (!box) return;
+  const offers = [
+    { side: "BUY", asset: "USDT", fiat: "RUB", rate: 94.3, min: 3000, max: 180000, method: "SBP" },
+    { side: "SELL", asset: "USDT", fiat: "RUB", rate: 93.8, min: 5000, max: 220000, method: "Tinkoff" },
+    { side: "BUY", asset: "BTC", fiat: "USD", rate: 71880, min: 150, max: 25000, method: "Card" },
+    { side: "SELL", asset: "ETH", fiat: "EUR", rate: 3760, min: 120, max: 14000, method: "SEPA" }
+  ];
+  box.innerHTML = offers.map((o) => `
+    <div class="market-card">
+      <div class="top">
+        <div class="pair">${o.side} ${o.asset}</div>
+        <div class="${o.side === "BUY" ? "delta-up" : "delta-down"}">${o.rate} ${o.fiat}</div>
+      </div>
+      <div class="price">Limit: ${o.min} - ${o.max} ${o.fiat}</div>
+      <div class="small-note">Method: ${o.method}</div>
+    </div>
+  `).join("");
+}
+
+function sendP2P() {
+  try {
+    const side = String(document.getElementById("p2p_side")?.value || "buy").toLowerCase();
+    const asset = String(document.getElementById("p2p_asset")?.value || "USDT").toUpperCase();
+    const amount = readPositiveNumber("p2p_amount", "Amount");
+    const rate = readPositiveNumber("p2p_rate", "Rate");
+    const fiat = String(document.getElementById("p2p_fiat")?.value || "RUB").toUpperCase();
+    const method = String(document.getElementById("p2p_method")?.value || "Any");
+    const note = String(document.getElementById("p2p_note")?.value || "").trim();
+    sendPayload({
+      action: "p2p_order",
+      side,
+      asset,
+      amount,
+      rate,
+      fiat,
+      method,
+      note
+    }, "P2P request sent.");
+    writeSessionState();
   } catch (e) {}
 }
 
@@ -1682,6 +1776,13 @@ document.getElementById("risk_auto_size")?.addEventListener("change", writeSessi
 document.getElementById("dep_amount")?.addEventListener("input", writeSessionState);
 document.getElementById("dep_currency")?.addEventListener("change", writeSessionState);
 document.getElementById("dep_method")?.addEventListener("change", writeSessionState);
+document.getElementById("p2p_side")?.addEventListener("change", writeSessionState);
+document.getElementById("p2p_asset")?.addEventListener("change", writeSessionState);
+document.getElementById("p2p_amount")?.addEventListener("input", writeSessionState);
+document.getElementById("p2p_rate")?.addEventListener("input", writeSessionState);
+document.getElementById("p2p_fiat")?.addEventListener("change", writeSessionState);
+document.getElementById("p2p_method")?.addEventListener("change", writeSessionState);
+document.getElementById("p2p_note")?.addEventListener("input", writeSessionState);
 document.getElementById("w_amount")?.addEventListener("input", writeSessionState);
 document.getElementById("w_currency")?.addEventListener("change", writeSessionState);
 document.getElementById("w_wallet")?.addEventListener("input", writeSessionState);
@@ -1789,6 +1890,7 @@ function renderMarket() {
 }
 
 renderMarket();
+renderP2POffers();
 fillDemoPrice();
 renderPortfolio();
 renderOrderFeed();
