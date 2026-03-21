@@ -713,6 +713,24 @@ iframe {
           <input id="take_profit" type="number" min="0.00000001" step="0.00000001" placeholder="Take Profit">
           <input id="stop_loss" type="number" min="0.00000001" step="0.00000001" placeholder="Stop Loss">
         </div>
+        <div class="preset-wrap">
+          <div class="preset-label">TP presets</div>
+          <div class="preset-grid" style="grid-template-columns:repeat(4,minmax(0,1fr));">
+            <button type="button" class="preset-btn" onclick="setTpSlPercent('tp', 1, this)">TP 1%</button>
+            <button type="button" class="preset-btn" onclick="setTpSlPercent('tp', 2, this)">TP 2%</button>
+            <button type="button" class="preset-btn" onclick="setTpSlPercent('tp', 3, this)">TP 3%</button>
+            <button type="button" class="preset-btn" onclick="setTpSlPercent('tp', 5, this)">TP 5%</button>
+          </div>
+        </div>
+        <div class="preset-wrap">
+          <div class="preset-label">SL presets</div>
+          <div class="preset-grid" style="grid-template-columns:repeat(4,minmax(0,1fr));">
+            <button type="button" class="preset-btn" onclick="setTpSlPercent('sl', 0.5, this)">SL 0.5%</button>
+            <button type="button" class="preset-btn" onclick="setTpSlPercent('sl', 1, this)">SL 1%</button>
+            <button type="button" class="preset-btn" onclick="setTpSlPercent('sl', 1.5, this)">SL 1.5%</button>
+            <button type="button" class="preset-btn" onclick="setTpSlPercent('sl', 2, this)">SL 2%</button>
+          </div>
+        </div>
         <div class="risk-box">
           <div class="risk-head">
             <span>Risk Management</span>
@@ -1002,6 +1020,29 @@ function setRiskPercent(value) {
   if (slider) slider.value = String(pct);
   const label = document.getElementById("risk_pct_label");
   if (label) label.textContent = `${pct.toFixed(1)}%`;
+  updateOrderPreview();
+}
+
+function setTpSlPercent(target, percent, btn) {
+  const price = Number(document.getElementById("price")?.value || 0);
+  const side = document.getElementById("direction")?.value || "long";
+  const pct = Number(percent || 0);
+  if (!Number.isFinite(price) || price <= 0 || !Number.isFinite(pct) || pct <= 0) return;
+  const ratio = pct / 100;
+  let level = price;
+  if (target === "tp") {
+    level = side === "long" ? price * (1 + ratio) : price * (1 - ratio);
+  } else {
+    level = side === "long" ? price * (1 - ratio) : price * (1 + ratio);
+  }
+  const inputId = target === "tp" ? "take_profit" : "stop_loss";
+  const input = document.getElementById(inputId);
+  if (input) input.value = level.toFixed(8);
+  const wrap = btn?.closest(".preset-wrap");
+  if (wrap) {
+    wrap.querySelectorAll(".preset-btn").forEach(el => el.classList.remove("active"));
+    btn.classList.add("active");
+  }
   updateOrderPreview();
 }
 
