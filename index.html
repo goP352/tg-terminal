@@ -1112,9 +1112,17 @@ function pinCurrentCoin() {
 }
 
 function restoreSessionState() {
+  const allowedTabs = new Set(["trade", "portfolio", "deposit", "withdraw", "support", "p2p"]);
+  let urlTab = "";
+  try {
+    const rawTab = String(new URLSearchParams(window.location.search).get("tab") || "").toLowerCase();
+    if (allowedTabs.has(rawTab)) urlTab = rawTab;
+  } catch (e) {}
+
   const state = readSessionState();
   if (!state) {
     renderWatchlist();
+    showTab(urlTab || "trade");
     return;
   }
   if (Array.isArray(state.watchlist)) {
@@ -1164,7 +1172,7 @@ function restoreSessionState() {
   const coin = document.getElementById("coin")?.value || "BTC";
   updateChartByCoin(coin);
   if (!document.getElementById("price")?.value) fillDemoPrice();
-  showTab(state.activeTab || "trade");
+  showTab(urlTab || state.activeTab || "trade");
 }
 
 if (tg) {
