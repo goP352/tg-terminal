@@ -190,6 +190,42 @@ iframe {
   border-color: #4d8dff;
   box-shadow: inset 0 0 0 1px rgba(77,141,255,.35);
 }
+.order-preview {
+  margin-top: 10px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(23,35,59,.65);
+}
+.preview-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.preview-item {
+  font-size: 12px;
+  color: var(--muted);
+}
+.preview-item b {
+  display: block;
+  color: var(--text);
+  font-size: 13px;
+  margin-top: 2px;
+}
+.sticky-action {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 10px;
+  width: min(1280px, calc(100% - 24px));
+  z-index: 80;
+  display: none;
+}
+.sticky-action .action {
+  width: 100%;
+  padding: 13px 16px;
+  font-size: 15px;
+}
 .empty {
   color: var(--muted);
   font-size: 14px;
@@ -200,6 +236,12 @@ iframe {
   }
   .grid-main {
     grid-template-columns: 1fr;
+  }
+  .sticky-action {
+    display: block;
+  }
+  body {
+    padding-bottom: 74px;
   }
 }
 @media (max-width: 720px) {
@@ -309,10 +351,31 @@ iframe {
             <button type="button" class="preset-btn" onclick="setPreset('amount', 25, this)">25</button>
           </div>
         </div>
+        <div class="preset-wrap">
+          <div class="preset-label">От баланса USDT</div>
+          <div class="preset-grid" style="grid-template-columns:repeat(4,minmax(0,1fr));">
+            <button type="button" class="preset-btn" onclick="setAmountByPercent(10, this)">10%</button>
+            <button type="button" class="preset-btn" onclick="setAmountByPercent(25, this)">25%</button>
+            <button type="button" class="preset-btn" onclick="setAmountByPercent(50, this)">50%</button>
+            <button type="button" class="preset-btn" onclick="setAmountByPercent(100, this)">Max</button>
+          </div>
+        </div>
 
         <div class="grid-2">
           <input id="take_profit" type="number" min="0.00000001" step="0.00000001" placeholder="Take Profit">
           <input id="stop_loss" type="number" min="0.00000001" step="0.00000001" placeholder="Stop Loss">
+        </div>
+        <div class="order-preview" id="orderPreview">
+          <div class="preset-label">Order Preview</div>
+          <div class="preview-grid">
+            <div class="preview-item">Pair<b id="op_pair">BTC/USDT</b></div>
+            <div class="preview-item">Side<b id="op_side">LONG</b></div>
+            <div class="preview-item">Qty<b id="op_qty">0.01000000</b></div>
+            <div class="preview-item">Price<b id="op_price">72000.00000000</b></div>
+            <div class="preview-item">Est. cost<b id="op_cost">720.00000000 USDT</b></div>
+            <div class="preview-item">Fee 0.10%<b id="op_fee">0.72000000 USDT</b></div>
+            <div class="preview-item">Total<b id="op_total">720.72000000 USDT</b></div>
+          </div>
         </div>
 
         <div class="grid-2" style="margin-top:10px;">
@@ -376,6 +439,15 @@ iframe {
             <button type="button" class="preset-btn" onclick="setPreset('w_amount', 2500, this)">2500</button>
           </div>
         </div>
+        <div class="preset-wrap">
+          <div class="preset-label">От баланса USDT</div>
+          <div class="preset-grid" style="grid-template-columns:repeat(4,minmax(0,1fr));">
+            <button type="button" class="preset-btn" onclick="setWithdrawByPercent(10, this)">10%</button>
+            <button type="button" class="preset-btn" onclick="setWithdrawByPercent(25, this)">25%</button>
+            <button type="button" class="preset-btn" onclick="setWithdrawByPercent(50, this)">50%</button>
+            <button type="button" class="preset-btn" onclick="setWithdrawByPercent(100, this)">Max</button>
+          </div>
+        </div>
         <input id="w_wallet" type="text" maxlength="128" placeholder="Кошелек / адрес вывода">
         <button class="action sell-btn" type="button" onclick="sendWithdraw()">Создать заявку</button>
       </div>
@@ -401,6 +473,9 @@ iframe {
       </div>
     </div>
   </div>
+  <div class="sticky-action" id="quickActionBar" style="display:none;">
+    <button class="action buy-btn" id="quickActionBtn" type="button" onclick="triggerPrimaryAction()">📈 Открыть ордер</button>
+  </div>
 </div>
 
 <script>
@@ -415,6 +490,7 @@ const basePrices = {
   ADA: 0.74, DOGE: 0.18, TRX: 0.13, TON: 6.3, LTC: 84, MATIC: 1.05,
   DOT: 8.6, AVAX: 41, LINK: 19, BCH: 510
 };
+let activeTab = "trade";
 
 if (tg) {
   tg.ready();
@@ -448,6 +524,8 @@ function showTab(id) {
   document.querySelectorAll(".tab-card").forEach(el => {
     el.style.display = el.id === id ? "block" : "none";
   });
+  activeTab = id;
+  updateQuickAction(id);
 }
 
 function fillDemoPrice() {
@@ -463,6 +541,95 @@ function setPreset(inputId, value, btn) {
   if (!wrap) return;
   wrap.querySelectorAll(".preset-btn").forEach(el => el.classList.remove("active"));
   btn.classList.add("active");
+  if (inputId === "amount") updateOrderPreview();
+}
+
+function getSummaryUsdt() {
+  const text = document.getElementById("summaryUsdt")?.textContent || "";
+  const num = Number(String(text).replace(",", ".").split(" ")[0]);
+  return Number.isFinite(num) && num > 0 ? num : 10000;
+}
+
+function setAmountByPercent(percent, btn) {
+  const usdt = getSummaryUsdt();
+  const price = Number(document.getElementById("price").value || 0);
+  if (!Number.isFinite(price) || price <= 0) return;
+  const qty = (usdt * (percent / 100)) / price;
+  document.getElementById("amount").value = qty.toFixed(8);
+  const wrap = btn?.closest(".preset-wrap");
+  if (wrap) {
+    wrap.querySelectorAll(".preset-btn").forEach(el => el.classList.remove("active"));
+    btn.classList.add("active");
+  }
+  updateOrderPreview();
+}
+
+function setWithdrawByPercent(percent, btn) {
+  const usdt = getSummaryUsdt();
+  const amount = usdt * (percent / 100);
+  document.getElementById("w_amount").value = amount.toFixed(2);
+  const wrap = btn?.closest(".preset-wrap");
+  if (wrap) {
+    wrap.querySelectorAll(".preset-btn").forEach(el => el.classList.remove("active"));
+    btn.classList.add("active");
+  }
+}
+
+function updateOrderPreview() {
+  const coin = document.getElementById("coin")?.value || "BTC";
+  const side = (document.getElementById("direction")?.value || "long").toUpperCase();
+  const qty = Number(document.getElementById("amount")?.value || 0);
+  const price = Number(document.getElementById("price")?.value || 0);
+  const safeQty = Number.isFinite(qty) && qty > 0 ? qty : 0;
+  const safePrice = Number.isFinite(price) && price > 0 ? price : 0;
+  const cost = safeQty * safePrice;
+  const fee = cost * 0.001;
+  const total = cost + fee;
+
+  const set = (id, val) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = val;
+  };
+  set("op_pair", `${coin}/USDT`);
+  set("op_side", side);
+  set("op_qty", safeQty.toFixed(8));
+  set("op_price", safePrice.toFixed(8));
+  set("op_cost", `${cost.toFixed(8)} USDT`);
+  set("op_fee", `${fee.toFixed(8)} USDT`);
+  set("op_total", `${total.toFixed(8)} USDT`);
+}
+
+function updateQuickAction(tab) {
+  const bar = document.getElementById("quickActionBar");
+  const btn = document.getElementById("quickActionBtn");
+  if (!bar || !btn) return;
+  if (window.innerWidth > 980) {
+    bar.style.display = "none";
+    return;
+  }
+  bar.style.display = "block";
+  btn.classList.remove("buy-btn", "sell-btn");
+  if (tab === "trade") {
+    btn.textContent = "📈 Открыть ордер";
+    btn.classList.add("buy-btn");
+  } else if (tab === "deposit") {
+    btn.textContent = "📥 Создать заявку";
+  } else if (tab === "withdraw") {
+    btn.textContent = "📤 Создать заявку";
+    btn.classList.add("sell-btn");
+  } else if (tab === "support") {
+    btn.textContent = "🛟 Отправить сообщение";
+  } else {
+    btn.textContent = "💼 Обновить портфель";
+  }
+}
+
+function triggerPrimaryAction() {
+  if (activeTab === "trade") return sendTrade();
+  if (activeTab === "deposit") return sendDeposit();
+  if (activeTab === "withdraw") return sendWithdraw();
+  if (activeTab === "support") return sendSupport();
+  return requestPortfolio();
 }
 
 function readPositiveNumber(id, label) {
@@ -541,9 +708,14 @@ if (coinSelect) {
     const coin = coinSelect.value;
     fillDemoPrice();
     updateChartByCoin(coin);
+    updateOrderPreview();
   });
   updateChartByCoin(coinSelect.value);
 }
+document.getElementById("amount")?.addEventListener("input", updateOrderPreview);
+document.getElementById("price")?.addEventListener("input", updateOrderPreview);
+document.getElementById("direction")?.addEventListener("change", updateOrderPreview);
+window.addEventListener("resize", () => updateQuickAction(activeTab));
 
 function requestPortfolio() {
   sendPayload({ action: "portfolio" }, "Запрос на обновление портфеля отправлен.");
@@ -568,6 +740,7 @@ function renderMarket() {
 renderMarket();
 fillDemoPrice();
 showTab("trade");
+updateOrderPreview();
 </script>
 </body>
 </html>
