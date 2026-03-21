@@ -862,7 +862,10 @@ iframe {
         <div class="order-feed">
           <div class="order-feed-top">
             <div class="small-note">Recent orders and status</div>
-            <button class="order-filter-btn" type="button" onclick="seedOrderFeed()">+ Demo</button>
+            <div style="display:flex; gap:6px;">
+              <button class="order-filter-btn" type="button" onclick="exportOrderFeedCsv()">Export CSV</button>
+              <button class="order-filter-btn" type="button" onclick="seedOrderFeed()">+ Demo</button>
+            </div>
           </div>
           <div class="order-filters">
             <button class="order-filter-btn active" type="button" data-order-filter="all" onclick="setOrderFilter('all', this)">All</button>
@@ -1281,6 +1284,38 @@ function seedOrderFeed() {
   });
   if (orderFeed.length > 30) orderFeed.pop();
   renderOrderFeed();
+}
+
+function exportOrderFeedCsv() {
+  const rows = orderFeed
+    .filter((o) => orderFilter === "all" ? true : o.status === orderFilter)
+    .sort((a, b) => b.id - a.id);
+  const header = ["id", "pair", "side", "qty", "entry", "status", "pnl_usdt", "created_at"];
+  const lines = [header.join(",")];
+  rows.forEach((o) => {
+    const line = [
+      o.id,
+      o.pair,
+      o.side,
+      Number(o.qty).toFixed(8),
+      Number(o.entry).toFixed(o.entry < 1 ? 8 : 2),
+      o.status,
+      Number(o.pnl).toFixed(2),
+      new Date(o.created_at).toISOString()
+    ];
+    lines.push(line.join(","));
+  });
+  const csv = lines.join("\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `order_feed_${new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-")}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+  showStatus(`CSV exported: ${rows.length} rows.`);
 }
 
 function triggerPrimaryAction() {
