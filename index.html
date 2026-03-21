@@ -236,6 +236,100 @@ iframe {
   height: 28px;
   display: block;
 }
+.order-feed {
+  display: grid;
+  gap: 8px;
+}
+.order-feed-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+.order-filters {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.order-filter-btn {
+  border: 1px solid var(--border);
+  background: #1b2841;
+  color: var(--text);
+  border-radius: 9px;
+  padding: 5px 8px;
+  font-size: 11px;
+  cursor: pointer;
+}
+.order-filter-btn.active {
+  border-color: #4d8dff;
+  box-shadow: inset 0 0 0 1px rgba(77,141,255,.35);
+}
+.feed-list {
+  display: grid;
+  gap: 8px;
+}
+.feed-card {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(23,35,59,.45);
+  padding: 9px 10px;
+}
+.feed-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+.feed-id {
+  font-size: 11px;
+  color: var(--muted);
+}
+.feed-pair {
+  font-size: 13px;
+  font-weight: 700;
+}
+.feed-grid {
+  margin-top: 7px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+}
+.feed-item {
+  font-size: 11px;
+  color: var(--muted);
+}
+.feed-item b {
+  display: block;
+  margin-top: 2px;
+  color: var(--text);
+  font-size: 12px;
+}
+.status-badge {
+  font-size: 10px;
+  padding: 4px 7px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+}
+.st-open {
+  color: #86efac;
+  border-color: rgba(22,163,74,.5);
+  background: rgba(22,163,74,.15);
+}
+.st-closed {
+  color: #93c5fd;
+  border-color: rgba(37,99,235,.5);
+  background: rgba(37,99,235,.16);
+}
+.st-rejected {
+  color: #fca5a5;
+  border-color: rgba(220,38,38,.5);
+  background: rgba(220,38,38,.15);
+}
+.feed-empty {
+  color: var(--muted);
+  font-size: 12px;
+  padding: 12px 4px;
+}
 .buy-btn {
   background: linear-gradient(180deg, #16a34a, #15803d) !important;
 }
@@ -483,6 +577,9 @@ iframe {
   }
   .market-cards {
     grid-template-columns: 1fr;
+  }
+  .feed-grid {
+    grid-template-columns: 1fr 1fr;
   }
   .heatmap-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -760,6 +857,22 @@ iframe {
       </div>
     </div>
   </div>
+      <div class="card">
+        <h3>Order Feed</h3>
+        <div class="order-feed">
+          <div class="order-feed-top">
+            <div class="small-note">Recent orders and status</div>
+            <button class="order-filter-btn" type="button" onclick="seedOrderFeed()">+ Demo</button>
+          </div>
+          <div class="order-filters">
+            <button class="order-filter-btn active" type="button" data-order-filter="all" onclick="setOrderFilter('all', this)">All</button>
+            <button class="order-filter-btn" type="button" data-order-filter="open" onclick="setOrderFilter('open', this)">Open</button>
+            <button class="order-filter-btn" type="button" data-order-filter="closed" onclick="setOrderFilter('closed', this)">Closed</button>
+            <button class="order-filter-btn" type="button" data-order-filter="rejected" onclick="setOrderFilter('rejected', this)">Rejected</button>
+          </div>
+          <div class="feed-list" id="orderFeedList"></div>
+        </div>
+      </div>
   <div class="sticky-action" id="quickActionBar" style="display:none;">
     <button class="action buy-btn" id="quickActionBtn" type="button" onclick="triggerPrimaryAction()">📈 Открыть ордер</button>
   </div>
@@ -787,6 +900,13 @@ const demoPositions = [
 ];
 let portfolioTick = 0;
 let marketTick = 0;
+let orderSeq = 11;
+let orderFilter = "all";
+const orderFeed = [
+  { id: 11, pair: "BTC/USDT", side: "LONG", qty: 0.02, entry: 71250, status: "open", pnl: 24.9, created_at: Date.now() - 14 * 60 * 1000 },
+  { id: 10, pair: "ETH/USDT", side: "SHORT", qty: 0.65, entry: 3860, status: "closed", pnl: 41.2, created_at: Date.now() - 43 * 60 * 1000 },
+  { id: 9, pair: "TRX/USDT", side: "LONG", qty: 1200, entry: 0.129, status: "rejected", pnl: 0, created_at: Date.now() - 85 * 60 * 1000 }
+];
 
 if (tg) {
   tg.ready();
@@ -1051,6 +1171,118 @@ function renderPortfolio() {
   }
 }
 
+function formatFeedTime(ts) {
+  const d = new Date(ts);
+  return d.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
+}
+
+function statusClass(status) {
+  if (status === "open") return "st-open";
+  if (status === "closed") return "st-closed";
+  return "st-rejected";
+}
+
+function statusLabel(status) {
+  if (status === "open") return "OPEN";
+  if (status === "closed") return "CLOSED";
+  return "REJECTED";
+}
+
+function renderOrderFeed() {
+  const list = document.getElementById("orderFeedList");
+  if (!list) return;
+  const rows = orderFeed
+    .filter((o) => orderFilter === "all" ? true : o.status === orderFilter)
+    .sort((a, b) => b.id - a.id);
+  if (!rows.length) {
+    list.innerHTML = `<div class="feed-empty">No orders for this filter.</div>`;
+    return;
+  }
+  list.innerHTML = rows.map((o) => {
+    const pnlClass = o.pnl >= 0 ? "pnl-pos" : "pnl-neg";
+    const sideClass = o.side === "LONG" ? "side-long" : "side-short";
+    return `
+      <div class="feed-card">
+        <div class="feed-top">
+          <div>
+            <div class="feed-id">#${o.id} | ${formatFeedTime(o.created_at)}</div>
+            <div class="feed-pair">${o.pair} <span class="side-badge ${sideClass}" style="margin-left:6px;">${o.side}</span></div>
+          </div>
+          <div class="status-badge ${statusClass(o.status)}">${statusLabel(o.status)}</div>
+        </div>
+        <div class="feed-grid">
+          <div class="feed-item">Qty<b>${formatMoney(o.qty, 6)}</b></div>
+          <div class="feed-item">Entry<b>${formatMoney(o.entry, o.entry < 1 ? 6 : 2)}</b></div>
+          <div class="feed-item">PnL<b class="pnl ${pnlClass}">${o.pnl >= 0 ? "+" : ""}${formatMoney(o.pnl, 2)} USDT</b></div>
+          <div class="feed-item">Status<b>${statusLabel(o.status)}</b></div>
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+function setOrderFilter(filter, btn) {
+  orderFilter = filter;
+  document.querySelectorAll("[data-order-filter]").forEach((el) => el.classList.remove("active"));
+  if (btn) btn.classList.add("active");
+  renderOrderFeed();
+}
+
+function addOrderFromTrade() {
+  const coin = document.getElementById("coin")?.value || "BTC";
+  const direction = (document.getElementById("direction")?.value || "long").toUpperCase();
+  const amount = Number(document.getElementById("amount")?.value || 0);
+  const price = Number(document.getElementById("price")?.value || 0);
+  const qty = Number.isFinite(amount) && amount > 0 ? amount : 0;
+  const entry = Number.isFinite(price) && price > 0 ? price : 0;
+  if (!qty || !entry) return;
+  orderSeq += 1;
+  orderFeed.unshift({
+    id: orderSeq,
+    pair: `${coin}/USDT`,
+    side: direction === "SHORT" ? "SHORT" : "LONG",
+    qty,
+    entry,
+    status: "open",
+    pnl: 0,
+    created_at: Date.now()
+  });
+  if (orderFeed.length > 30) orderFeed.pop();
+  renderOrderFeed();
+}
+
+function tickOrderFeed() {
+  orderFeed.forEach((o, idx) => {
+    if (o.status !== "open") return;
+    const swing = Math.sin((marketTick + o.id + idx) / 3.4) * 0.009;
+    const signed = o.side === "LONG" ? 1 : -1;
+    o.pnl = (o.entry * swing * o.qty * 6) * signed;
+    if (Math.abs(swing) > 0.0082 && (marketTick + idx) % 5 === 0) {
+      o.status = Math.random() > 0.25 ? "closed" : "rejected";
+    }
+  });
+  renderOrderFeed();
+}
+
+function seedOrderFeed() {
+  const pairs = ["BTC/USDT", "ETH/USDT", "SOL/USDT", "TRX/USDT"];
+  const pair = pairs[(marketTick + orderSeq) % pairs.length];
+  const base = Number(basePrices[pair.split("/")[0]] || 1);
+  orderSeq += 1;
+  orderFeed.unshift({
+    id: orderSeq,
+    pair,
+    side: orderSeq % 2 ? "LONG" : "SHORT",
+    qty: Number((Math.random() * 2 + 0.05).toFixed(4)),
+    entry: Number((base * (1 + (Math.random() - 0.5) * 0.02)).toFixed(base < 1 ? 6 : 2)),
+    status: "open",
+    pnl: 0,
+    created_at: Date.now()
+  });
+  if (orderFeed.length > 30) orderFeed.pop();
+  renderOrderFeed();
+}
+
 function triggerPrimaryAction() {
   if (activeTab === "trade") return sendTrade();
   if (activeTab === "deposit") return sendDeposit();
@@ -1134,6 +1366,7 @@ function sendTrade() {
     const riskPct = Number(document.getElementById("risk_percent")?.value || 1);
     const riskAmountText = document.getElementById("risk_amount_usdt")?.textContent || "0";
     const rrText = document.getElementById("risk_rr")?.textContent || "N/A";
+    addOrderFromTrade();
     sendPayload({
       action: "trade",
       coin: document.getElementById("coin").value,
@@ -1272,6 +1505,7 @@ function renderMarket() {
 renderMarket();
 fillDemoPrice();
 renderPortfolio();
+renderOrderFeed();
 showTab("trade");
 setRiskPercent(document.getElementById("risk_percent")?.value || 1);
 updateOrderPreview();
@@ -1280,6 +1514,7 @@ setInterval(() => {
   marketTick += 1;
   renderPortfolio();
   renderMarket();
+  tickOrderFeed();
 }, 9000);
 </script>
 </body>
