@@ -878,8 +878,12 @@ iframe {
           </div>
         </div>
         <select id="dep_method">
-          <option value="crypto">Crypto</option>
-          <option value="card">Карта</option>
+          <option value="USDT TRC20">USDT TRC20</option>
+          <option value="USDT TON">USDT TON</option>
+          <option value="USDT BEP20">USDT BEP20</option>
+          <option value="Карта РФ (СБП)">Карта РФ (СБП)</option>
+          <option value="Карта РФ (Т-Банк)">Карта РФ (Т-Банк)</option>
+          <option value="Карта РФ (Сбер)">Карта РФ (Сбер)</option>
         </select>
         <button class="action" type="button" onclick="sendDeposit()">Создать заявку</button>
       </div>
@@ -1042,7 +1046,7 @@ function writeSessionState(partial = null) {
       risk_auto_size: !!document.getElementById("risk_auto_size")?.checked,
       dep_amount: document.getElementById("dep_amount")?.value || "",
       dep_currency: document.getElementById("dep_currency")?.value || "USDT",
-      dep_method: document.getElementById("dep_method")?.value || "crypto",
+      dep_method: document.getElementById("dep_method")?.value || "USDT TRC20",
       p2p_side: document.getElementById("p2p_side")?.value || "buy",
       p2p_asset: document.getElementById("p2p_asset")?.value || "USDT",
       p2p_amount: document.getElementById("p2p_amount")?.value || "",
@@ -1620,7 +1624,7 @@ function triggerPrimaryAction() {
 }
 
 function readPositiveNumber(id, label) {
-  const value = document.getElementById(id).value.trim();
+  const value = String(document.getElementById(id).value || "").trim().replace(",", ".");
   const number = Number(value);
   if (!Number.isFinite(number) || number <= 0) {
     throw new Error(`Поле "${label}" должно быть больше нуля.`);
@@ -1655,7 +1659,9 @@ function sendTradeLegacy() {
       take_profit: document.getElementById("take_profit").value.trim(),
       stop_loss: document.getElementById("stop_loss").value.trim()
     }, "Ордер отправлен. Миниапп остается открытым.");
-  } catch (e) {}
+  } catch (e) {
+    showStatus(e?.message || "Проверьте введенные данные.");
+  }
 }
 
 function renderP2POffers() {
@@ -1699,7 +1705,9 @@ function sendP2P() {
       note
     }, "P2P request sent.");
     writeSessionState();
-  } catch (e) {}
+  } catch (e) {
+    showStatus(e?.message || "Проверьте данные P2P.");
+  }
 }
 
 function sendDeposit() {
@@ -1708,9 +1716,11 @@ function sendDeposit() {
       action: "deposit",
       amount: readPositiveNumber("dep_amount", "Сумма"),
       currency: document.getElementById("dep_currency").value,
-      method: document.getElementById("dep_method").value
+      requisite_title: document.getElementById("dep_method").value
     }, "Заявка на пополнение отправлена.");
-  } catch (e) {}
+  } catch (e) {
+    showStatus(e?.message || "Проверьте данные пополнения.");
+  }
 }
 
 function sendWithdraw() {
@@ -1721,7 +1731,9 @@ function sendWithdraw() {
       currency: document.getElementById("w_currency").value,
       wallet: readText("w_wallet", "Кошелек", 128)
     }, "Заявка на вывод отправлена.");
-  } catch (e) {}
+  } catch (e) {
+    showStatus(e?.message || "Проверьте данные вывода.");
+  }
 }
 
 function sendSupport() {
@@ -1730,7 +1742,9 @@ function sendSupport() {
       action: "support",
       message: readText("support_text", "Сообщение", 1000)
     }, "Сообщение отправлено в поддержку.");
-  } catch (e) {}
+  } catch (e) {
+    showStatus(e?.message || "Проверьте сообщение для поддержки.");
+  }
 }
 
 function sendTrade() {
@@ -1752,7 +1766,9 @@ function sendTrade() {
       risk_amount_usdt: riskAmountText,
       risk_reward: rrText
     }, "Order sent. Mini App stays open.");
-  } catch (e) {}
+  } catch (e) {
+    showStatus(e?.message || "Проверьте параметры ордера.");
+  }
 }
 
 const coinSelect = document.getElementById("coin");
