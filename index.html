@@ -371,6 +371,43 @@ iframe {
   border-color: #4d8dff;
   box-shadow: inset 0 0 0 1px rgba(77,141,255,.35);
 }
+.watchlist-wrap {
+  margin-top: 8px;
+}
+.watchlist-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.watch-toggle {
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: #1b2841;
+  color: var(--text);
+  font-size: 11px;
+  padding: 5px 8px;
+  cursor: pointer;
+}
+.watchlist {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.watch-chip {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #1a2840;
+  color: var(--text);
+  padding: 6px 9px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.watch-chip.active {
+  border-color: #4d8dff;
+  box-shadow: inset 0 0 0 1px rgba(77,141,255,.35);
+}
 .order-preview {
   margin-top: 10px;
   padding: 10px;
@@ -677,6 +714,13 @@ iframe {
             <option value="short">Short</option>
           </select>
         </div>
+        <div class="watchlist-wrap">
+          <div class="watchlist-top">
+            <div class="preset-label">Watchlist</div>
+            <button type="button" id="watchToggleBtn" class="watch-toggle" onclick="toggleWatchCoin()">☆ Add to Watchlist</button>
+          </div>
+          <div class="watchlist" id="watchlistBar"></div>
+        </div>
 
         <div class="grid-2">
           <input id="amount" type="number" min="0.01" step="0.01" placeholder="Количество" value="0.01">
@@ -923,11 +967,127 @@ let portfolioTick = 0;
 let marketTick = 0;
 let orderSeq = 11;
 let orderFilter = "all";
+const SESSION_KEY = "tg_terminal_session_v2";
+let watchlist = ["BTC", "ETH", "SOL", "TRX", "TON"];
 const orderFeed = [
   { id: 11, pair: "BTC/USDT", side: "LONG", qty: 0.02, entry: 71250, status: "open", pnl: 24.9, created_at: Date.now() - 14 * 60 * 1000 },
   { id: 10, pair: "ETH/USDT", side: "SHORT", qty: 0.65, entry: 3860, status: "closed", pnl: 41.2, created_at: Date.now() - 43 * 60 * 1000 },
   { id: 9, pair: "TRX/USDT", side: "LONG", qty: 1200, entry: 0.129, status: "rejected", pnl: 0, created_at: Date.now() - 85 * 60 * 1000 }
 ];
+
+function readSessionState() {
+  try {
+    const raw = localStorage.getItem(SESSION_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === "object" ? parsed : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+function writeSessionState(partial = null) {
+  try {
+    const base = readSessionState() || {};
+    const snapshot = partial || {
+      activeTab,
+      coin: document.getElementById("coin")?.value || "BTC",
+      direction: document.getElementById("direction")?.value || "long",
+      amount: document.getElementById("amount")?.value || "",
+      price: document.getElementById("price")?.value || "",
+      take_profit: document.getElementById("take_profit")?.value || "",
+      stop_loss: document.getElementById("stop_loss")?.value || "",
+      risk_percent: document.getElementById("risk_percent")?.value || "1",
+      risk_auto_size: !!document.getElementById("risk_auto_size")?.checked,
+      dep_amount: document.getElementById("dep_amount")?.value || "",
+      dep_currency: document.getElementById("dep_currency")?.value || "USDT",
+      dep_method: document.getElementById("dep_method")?.value || "crypto",
+      w_amount: document.getElementById("w_amount")?.value || "",
+      w_currency: document.getElementById("w_currency")?.value || "USDT",
+      w_wallet: document.getElementById("w_wallet")?.value || "",
+      orderFilter,
+      watchlist
+    };
+    localStorage.setItem(SESSION_KEY, JSON.stringify({ ...base, ...snapshot }));
+  } catch (e) {}
+}
+
+function renderWatchlist() {
+  const bar = document.getElementById("watchlistBar");
+  const toggle = document.getElementById("watchToggleBtn");
+  const selected = document.getElementById("coin")?.value || "BTC";
+  if (!bar) return;
+  watchlist = [...new Set((watchlist || []).filter((c) => coins.includes(c)))].slice(0, 10);
+  if (!watchlist.length) watchlist = ["BTC", "ETH", "SOL"];
+  bar.innerHTML = watchlist.map((coin) => `
+    <button type="button" class="watch-chip ${coin === selected ? "active" : ""}" onclick="selectWatchCoin('${coin}')">${coin}</button>
+  `).join("");
+  if (toggle) {
+    toggle.textContent = watchlist.includes(selected) ? "★ In Watchlist" : "☆ Add to Watchlist";
+  }
+}
+
+function selectWatchCoin(coin) {
+  const select = document.getElementById("coin");
+  if (!select || !coins.includes(coin)) return;
+  select.value = coin;
+  select.dispatchEvent(new Event("change"));
+}
+
+function toggleWatchCoin() {
+  const selected = document.getElementById("coin")?.value || "BTC";
+  if (!coins.includes(selected)) return;
+  if (watchlist.includes(selected)) {
+    watchlist = watchlist.filter((c) => c !== selected);
+  } else {
+    watchlist = [selected, ...watchlist.filter((c) => c !== selected)].slice(0, 10);
+  }
+  renderWatchlist();
+  writeSessionState();
+}
+
+function restoreSessionState() {
+  const state = readSessionState();
+  if (!state) {
+    renderWatchlist();
+    return;
+  }
+  if (Array.isArray(state.watchlist)) {
+    watchlist = state.watchlist.filter((c) => coins.includes(c)).slice(0, 10);
+  }
+  const setIf = (id, val) => {
+    const el = document.getElementById(id);
+    if (!el || val === undefined || val === null || val === "") return;
+    el.value = val;
+  };
+  setIf("coin", state.coin);
+  setIf("direction", state.direction);
+  setIf("amount", state.amount);
+  setIf("price", state.price);
+  setIf("take_profit", state.take_profit);
+  setIf("stop_loss", state.stop_loss);
+  setIf("risk_percent", state.risk_percent);
+  if (typeof state.risk_auto_size === "boolean") {
+    const ck = document.getElementById("risk_auto_size");
+    if (ck) ck.checked = state.risk_auto_size;
+  }
+  setIf("dep_amount", state.dep_amount);
+  setIf("dep_currency", state.dep_currency);
+  setIf("dep_method", state.dep_method);
+  setIf("w_amount", state.w_amount);
+  setIf("w_currency", state.w_currency);
+  setIf("w_wallet", state.w_wallet);
+  if (typeof state.orderFilter === "string") {
+    orderFilter = state.orderFilter;
+  }
+  renderWatchlist();
+  const activeBtn = document.querySelector(`[data-order-filter="${orderFilter}"]`);
+  setOrderFilter(orderFilter, activeBtn);
+  const coin = document.getElementById("coin")?.value || "BTC";
+  updateChartByCoin(coin);
+  if (!document.getElementById("price")?.value) fillDemoPrice();
+  showTab(state.activeTab || "trade");
+}
 
 if (tg) {
   tg.ready();
@@ -964,6 +1124,7 @@ function showTab(id) {
   activeTab = id;
   if (id === "portfolio") renderPortfolio();
   updateQuickAction(id);
+  writeSessionState();
 }
 
 function fillDemoPrice() {
@@ -1270,6 +1431,7 @@ function setOrderFilter(filter, btn) {
   document.querySelectorAll("[data-order-filter]").forEach((el) => el.classList.remove("active"));
   if (btn) btn.classList.add("active");
   renderOrderFeed();
+  writeSessionState();
 }
 
 function addOrderFromTrade() {
@@ -1293,6 +1455,7 @@ function addOrderFromTrade() {
   });
   if (orderFeed.length > 30) orderFeed.pop();
   renderOrderFeed();
+  writeSessionState();
 }
 
 function tickOrderFeed() {
@@ -1466,6 +1629,8 @@ if (coinSelect) {
     fillDemoPrice();
     updateChartByCoin(coin);
     updateOrderPreview();
+    renderWatchlist();
+    writeSessionState();
   });
   updateChartByCoin(coinSelect.value);
 }
@@ -1476,6 +1641,20 @@ document.getElementById("take_profit")?.addEventListener("input", updateOrderPre
 document.getElementById("stop_loss")?.addEventListener("input", updateOrderPreview);
 document.getElementById("risk_percent")?.addEventListener("input", updateOrderPreview);
 document.getElementById("risk_auto_size")?.addEventListener("change", updateOrderPreview);
+document.getElementById("amount")?.addEventListener("input", writeSessionState);
+document.getElementById("price")?.addEventListener("input", writeSessionState);
+document.getElementById("direction")?.addEventListener("change", writeSessionState);
+document.getElementById("take_profit")?.addEventListener("input", writeSessionState);
+document.getElementById("stop_loss")?.addEventListener("input", writeSessionState);
+document.getElementById("risk_percent")?.addEventListener("input", writeSessionState);
+document.getElementById("risk_auto_size")?.addEventListener("change", writeSessionState);
+document.getElementById("dep_amount")?.addEventListener("input", writeSessionState);
+document.getElementById("dep_currency")?.addEventListener("change", writeSessionState);
+document.getElementById("dep_method")?.addEventListener("change", writeSessionState);
+document.getElementById("w_amount")?.addEventListener("input", writeSessionState);
+document.getElementById("w_currency")?.addEventListener("change", writeSessionState);
+document.getElementById("w_wallet")?.addEventListener("input", writeSessionState);
+document.getElementById("support_text")?.addEventListener("input", writeSessionState);
 window.addEventListener("resize", () => updateQuickAction(activeTab));
 
 function requestPortfolio() {
@@ -1582,9 +1761,12 @@ renderMarket();
 fillDemoPrice();
 renderPortfolio();
 renderOrderFeed();
-showTab("trade");
+restoreSessionState();
+renderWatchlist();
+if (!readSessionState()?.activeTab) showTab("trade");
 setRiskPercent(document.getElementById("risk_percent")?.value || 1);
 updateOrderPreview();
+writeSessionState();
 setInterval(() => {
   portfolioTick += 1;
   marketTick += 1;
