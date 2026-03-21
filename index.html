@@ -227,7 +227,7 @@ iframe {
     </div>
     <div class="metric">
       <div class="label">Основной рынок</div>
-      <div class="value">BTC/USDT</div>
+      <div class="value" id="mainPair">BTC/USDT</div>
       <div class="sub">Live chart view</div>
     </div>
     <div class="metric">
@@ -253,8 +253,9 @@ iframe {
   <div class="grid-main">
     <div>
       <div class="card">
-        <h3>График BTC/USDT</h3>
+        <h3 id="chartTitle">График BTC/USDT</h3>
         <iframe
+          id="tvChart"
           title="BTC/USDT chart"
           loading="lazy"
           referrerpolicy="no-referrer"
@@ -423,6 +424,21 @@ if (tg) {
   }
 }
 
+function chartUrl(symbol) {
+  return `https://s.tradingview.com/widgetembed/?frameElementId=tradingview_1&symbol=BINANCE:${symbol}&interval=60&theme=dark&style=1`;
+}
+
+function updateChartByCoin(coin) {
+  const pair = `${coin}/USDT`;
+  const symbol = `${coin}USDT`;
+  const iframe = document.getElementById("tvChart");
+  const title = document.getElementById("chartTitle");
+  const mainPair = document.getElementById("mainPair");
+  if (iframe) iframe.src = chartUrl(symbol);
+  if (title) title.textContent = `График ${pair}`;
+  if (mainPair) mainPair.textContent = pair;
+}
+
 function showStatus(text) {
   statusBox.textContent = text;
   statusBox.style.display = "block";
@@ -517,6 +533,16 @@ function sendSupport() {
       message: readText("support_text", "Сообщение", 1000)
     }, "Сообщение отправлено в поддержку.");
   } catch (e) {}
+}
+
+const coinSelect = document.getElementById("coin");
+if (coinSelect) {
+  coinSelect.addEventListener("change", () => {
+    const coin = coinSelect.value;
+    fillDemoPrice();
+    updateChartByCoin(coin);
+  });
+  updateChartByCoin(coinSelect.value);
 }
 
 function requestPortfolio() {
