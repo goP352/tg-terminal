@@ -408,6 +408,10 @@ iframe {
   border-color: #4d8dff;
   box-shadow: inset 0 0 0 1px rgba(77,141,255,.35);
 }
+.watch-chip.pinned {
+  border-color: #f59e0b;
+  box-shadow: inset 0 0 0 1px rgba(245,158,11,.28);
+}
 .order-preview {
   margin-top: 10px;
   padding: 10px;
@@ -717,7 +721,10 @@ iframe {
         <div class="watchlist-wrap">
           <div class="watchlist-top">
             <div class="preset-label">Watchlist</div>
-            <button type="button" id="watchToggleBtn" class="watch-toggle" onclick="toggleWatchCoin()">☆ Add to Watchlist</button>
+            <div style="display:flex; gap:6px;">
+              <button type="button" id="pinCoinBtn" class="watch-toggle" onclick="pinCurrentCoin()">📌 Pin current</button>
+              <button type="button" id="watchToggleBtn" class="watch-toggle" onclick="toggleWatchCoin()">☆ Add to Watchlist</button>
+            </div>
           </div>
           <div class="watchlist" id="watchlistBar"></div>
         </div>
@@ -969,6 +976,7 @@ let orderSeq = 11;
 let orderFilter = "all";
 const SESSION_KEY = "tg_terminal_session_v2";
 let watchlist = ["BTC", "ETH", "SOL", "TRX", "TON"];
+let pinnedCoin = "BTC";
 const orderFeed = [
   { id: 11, pair: "BTC/USDT", side: "LONG", qty: 0.02, entry: 71250, status: "open", pnl: 24.9, created_at: Date.now() - 14 * 60 * 1000 },
   { id: 10, pair: "ETH/USDT", side: "SHORT", qty: 0.65, entry: 3860, status: "closed", pnl: 41.2, created_at: Date.now() - 43 * 60 * 1000 },
@@ -1006,7 +1014,8 @@ function writeSessionState(partial = null) {
       w_currency: document.getElementById("w_currency")?.value || "USDT",
       w_wallet: document.getElementById("w_wallet")?.value || "",
       orderFilter,
-      watchlist
+      watchlist,
+      pinnedCoin
     };
     localStorage.setItem(SESSION_KEY, JSON.stringify({ ...base, ...snapshot }));
   } catch (e) {}
@@ -1015,15 +1024,19 @@ function writeSessionState(partial = null) {
 function renderWatchlist() {
   const bar = document.getElementById("watchlistBar");
   const toggle = document.getElementById("watchToggleBtn");
+  const pinBtn = document.getElementById("pinCoinBtn");
   const selected = document.getElementById("coin")?.value || "BTC";
   if (!bar) return;
   watchlist = [...new Set((watchlist || []).filter((c) => coins.includes(c)))].slice(0, 10);
   if (!watchlist.length) watchlist = ["BTC", "ETH", "SOL"];
   bar.innerHTML = watchlist.map((coin) => `
-    <button type="button" class="watch-chip ${coin === selected ? "active" : ""}" onclick="selectWatchCoin('${coin}')">${coin}</button>
+    <button type="button" class="watch-chip ${coin === selected ? "active" : ""} ${coin === pinnedCoin ? "pinned" : ""}" onclick="selectWatchCoin('${coin}')">${coin}${coin === pinnedCoin ? " 📌" : ""}</button>
   `).join("");
   if (toggle) {
     toggle.textContent = watchlist.includes(selected) ? "★ In Watchlist" : "☆ Add to Watchlist";
+  }
+  if (pinBtn) {
+    pinBtn.textContent = selected === pinnedCoin ? "📌 Pinned" : "📌 Pin current";
   }
 }
 
@@ -1046,6 +1059,18 @@ function toggleWatchCoin() {
   writeSessionState();
 }
 
+function pinCurrentCoin() {
+  const selected = document.getElementById("coin")?.value || "BTC";
+  if (!coins.includes(selected)) return;
+  pinnedCoin = selected;
+  if (!watchlist.includes(selected)) {
+    watchlist = [selected, ...watchlist].slice(0, 10);
+  }
+  renderWatchlist();
+  updateChartByCoin(selected);
+  writeSessionState();
+}
+
 function restoreSessionState() {
   const state = readSessionState();
   if (!state) {
@@ -1055,12 +1080,18 @@ function restoreSessionState() {
   if (Array.isArray(state.watchlist)) {
     watchlist = state.watchlist.filter((c) => coins.includes(c)).slice(0, 10);
   }
+  if (typeof state.pinnedCoin === "string" && coins.includes(state.pinnedCoin)) {
+    pinnedCoin = state.pinnedCoin;
+  }
   const setIf = (id, val) => {
     const el = document.getElementById(id);
     if (!el || val === undefined || val === null || val === "") return;
     el.value = val;
   };
-  setIf("coin", state.coin);
+  setIf("coin", pinnedCoin);
+  if (!(typeof state.pinnedCoin === "string" && coins.includes(state.pinnedCoin))) {
+    setIf("coin", state.coin);
+  }
   setIf("direction", state.direction);
   setIf("amount", state.amount);
   setIf("price", state.price);
@@ -1109,7 +1140,7 @@ function updateChartByCoin(coin) {
   const mainPair = document.getElementById("mainPair");
   if (iframe) iframe.src = chartUrl(symbol);
   if (title) title.textContent = `График ${pair}`;
-  if (mainPair) mainPair.textContent = pair;
+  if (mainPair) mainPair.textContent = coin === pinnedCoin ? `${pair} 📌` : pair;
 }
 
 function showStatus(text) {
