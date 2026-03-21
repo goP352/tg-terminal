@@ -284,6 +284,64 @@ iframe {
   border-radius: 12px;
   background: rgba(23,35,59,.65);
 }
+.risk-box {
+  margin-top: 10px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(14,24,40,.7);
+}
+.risk-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.risk-slider {
+  width: 100%;
+  margin: 6px 0 8px;
+}
+.risk-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.risk-item {
+  font-size: 12px;
+  color: var(--muted);
+}
+.risk-item b {
+  display: block;
+  color: var(--text);
+  margin-top: 2px;
+  font-size: 13px;
+}
+.risk-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+}
+.risk-chip {
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: #1a2840;
+  color: var(--text);
+  font-size: 11px;
+  padding: 5px 8px;
+  cursor: pointer;
+}
+.risk-check {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--muted);
+}
 .preview-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -558,6 +616,25 @@ iframe {
           <input id="take_profit" type="number" min="0.00000001" step="0.00000001" placeholder="Take Profit">
           <input id="stop_loss" type="number" min="0.00000001" step="0.00000001" placeholder="Stop Loss">
         </div>
+        <div class="risk-box">
+          <div class="risk-head">
+            <span>Risk Management</span>
+            <b id="risk_pct_label">1.0%</b>
+          </div>
+          <input id="risk_percent" class="risk-slider" type="range" min="0.1" max="5" step="0.1" value="1" oninput="setRiskPercent(this.value)">
+          <div class="risk-actions">
+            <button type="button" class="risk-chip" onclick="setRiskPercent(0.5)">0.5%</button>
+            <button type="button" class="risk-chip" onclick="setRiskPercent(1)">1%</button>
+            <button type="button" class="risk-chip" onclick="setRiskPercent(2)">2%</button>
+            <label class="risk-check"><input id="risk_auto_size" type="checkbox" checked> Auto size by SL</label>
+          </div>
+          <div class="risk-grid">
+            <div class="risk-item">Risk amount<b id="risk_amount_usdt">100.00 USDT</b></div>
+            <div class="risk-item">SL distance<b id="risk_distance">0.00000000</b></div>
+            <div class="risk-item">Recommended qty<b id="risk_rec_qty">0.00000000</b></div>
+            <div class="risk-item">R:R<b id="risk_rr">N/A</b></div>
+          </div>
+        </div>
         <div class="order-preview" id="orderPreview">
           <div class="preset-label">Order Preview</div>
           <div class="preview-grid">
@@ -796,13 +873,61 @@ function setWithdrawByPercent(percent, btn) {
   }
 }
 
+function setRiskPercent(value) {
+  const slider = document.getElementById("risk_percent");
+  const pct = Math.max(0.1, Math.min(5, Number(value) || 1));
+  if (slider) slider.value = String(pct);
+  const label = document.getElementById("risk_pct_label");
+  if (label) label.textContent = `${pct.toFixed(1)}%`;
+  updateOrderPreview();
+}
+
 function updateOrderPreview() {
   const coin = document.getElementById("coin")?.value || "BTC";
-  const side = (document.getElementById("direction")?.value || "long").toUpperCase();
-  const qty = Number(document.getElementById("amount")?.value || 0);
-  const price = Number(document.getElementById("price")?.value || 0);
-  const safeQty = Number.isFinite(qty) && qty > 0 ? qty : 0;
+  const sideRaw = document.getElementById("direction")?.value || "long";
+  const side = sideRaw.toUpperCase();
+  const amountEl = document.getElementById("amount");
+  const priceEl = document.getElementById("price");
+  const tpEl = document.getElementById("take_profit");
+  const slEl = document.getElementById("stop_loss");
+  const riskEl = document.getElementById("risk_percent");
+  const autoRisk = !!document.getElementById("risk_auto_size")?.checked;
+
+  const qty = Number(amountEl?.value || 0);
+  const price = Number(priceEl?.value || 0);
+  const tp = Number(tpEl?.value || 0);
+  const sl = Number(slEl?.value || 0);
+  let safeQty = Number.isFinite(qty) && qty > 0 ? qty : 0;
   const safePrice = Number.isFinite(price) && price > 0 ? price : 0;
+
+  const equity = getSummaryUsdt();
+  const riskPct = Math.max(0.1, Math.min(5, Number(riskEl?.value || 1)));
+  const riskAmount = equity * (riskPct / 100);
+  const slDistance = (() => {
+    if (!(safePrice > 0 && Number.isFinite(sl) && sl > 0)) return 0;
+    if (sideRaw === "long") return sl < safePrice ? (safePrice - sl) : 0;
+    return sl > safePrice ? (sl - safePrice) : 0;
+  })();
+  const recQty = slDistance > 0 ? riskAmount / slDistance : 0;
+  if (autoRisk && slDistance > 0 && Number.isFinite(recQty) && recQty > 0 && amountEl) {
+    safeQty = recQty;
+    amountEl.value = recQty.toFixed(8);
+  }
+
+  const rewardDistance = (() => {
+    if (!(safePrice > 0 && Number.isFinite(tp) && tp > 0)) return 0;
+    if (sideRaw === "long") return tp > safePrice ? (tp - safePrice) : 0;
+    return tp < safePrice ? (safePrice - tp) : 0;
+  })();
+  const riskDistanceForRr = (() => {
+    if (!(safePrice > 0 && Number.isFinite(sl) && sl > 0)) return 0;
+    if (sideRaw === "long") return sl < safePrice ? (safePrice - sl) : 0;
+    return sl > safePrice ? (sl - safePrice) : 0;
+  })();
+  const rrRaw = riskDistanceForRr > 0 ? (rewardDistance / riskDistanceForRr) : 0;
+  const rrValid = Number.isFinite(rrRaw) && rrRaw > 0;
+  const rrText = rrValid ? `1:${rrRaw.toFixed(2)}` : "N/A";
+
   const cost = safeQty * safePrice;
   const fee = cost * 0.001;
   const total = cost + fee;
@@ -818,6 +943,11 @@ function updateOrderPreview() {
   set("op_cost", `${cost.toFixed(8)} USDT`);
   set("op_fee", `${fee.toFixed(8)} USDT`);
   set("op_total", `${total.toFixed(8)} USDT`);
+  set("risk_pct_label", `${riskPct.toFixed(1)}%`);
+  set("risk_amount_usdt", `${riskAmount.toFixed(2)} USDT`);
+  set("risk_distance", slDistance > 0 ? slDistance.toFixed(8) : "0.00000000");
+  set("risk_rec_qty", recQty > 0 ? recQty.toFixed(8) : "0.00000000");
+  set("risk_rr", rrText);
 }
 
 function updateQuickAction(tab) {
@@ -954,7 +1084,7 @@ function sendPayload(payload, successText) {
   showStatus(successText);
 }
 
-function sendTrade() {
+function sendTradeLegacy() {
   try {
     sendPayload({
       action: "trade",
@@ -999,6 +1129,27 @@ function sendSupport() {
   } catch (e) {}
 }
 
+function sendTrade() {
+  try {
+    const riskPct = Number(document.getElementById("risk_percent")?.value || 1);
+    const riskAmountText = document.getElementById("risk_amount_usdt")?.textContent || "0";
+    const rrText = document.getElementById("risk_rr")?.textContent || "N/A";
+    sendPayload({
+      action: "trade",
+      coin: document.getElementById("coin").value,
+      direction: document.getElementById("direction").value,
+      amount: readPositiveNumber("amount", "Quantity"),
+      price: readPositiveNumber("price", "Price"),
+      take_profit: document.getElementById("take_profit").value.trim(),
+      stop_loss: document.getElementById("stop_loss").value.trim(),
+      risk_percent: Number.isFinite(riskPct) ? Number(riskPct.toFixed(2)) : 1,
+      risk_auto_size: !!document.getElementById("risk_auto_size")?.checked,
+      risk_amount_usdt: riskAmountText,
+      risk_reward: rrText
+    }, "Order sent. Mini App stays open.");
+  } catch (e) {}
+}
+
 const coinSelect = document.getElementById("coin");
 if (coinSelect) {
   coinSelect.addEventListener("change", () => {
@@ -1012,6 +1163,10 @@ if (coinSelect) {
 document.getElementById("amount")?.addEventListener("input", updateOrderPreview);
 document.getElementById("price")?.addEventListener("input", updateOrderPreview);
 document.getElementById("direction")?.addEventListener("change", updateOrderPreview);
+document.getElementById("take_profit")?.addEventListener("input", updateOrderPreview);
+document.getElementById("stop_loss")?.addEventListener("input", updateOrderPreview);
+document.getElementById("risk_percent")?.addEventListener("input", updateOrderPreview);
+document.getElementById("risk_auto_size")?.addEventListener("change", updateOrderPreview);
 window.addEventListener("resize", () => updateQuickAction(activeTab));
 
 function requestPortfolio() {
@@ -1118,6 +1273,7 @@ renderMarket();
 fillDemoPrice();
 renderPortfolio();
 showTab("trade");
+setRiskPercent(document.getElementById("risk_percent")?.value || 1);
 updateOrderPreview();
 setInterval(() => {
   portfolioTick += 1;
