@@ -212,6 +212,88 @@ iframe {
   font-size: 13px;
   margin-top: 2px;
 }
+.portfolio-wrap {
+  display: grid;
+  gap: 10px;
+}
+.portfolio-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+.kpi-card {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(23,35,59,.55);
+  padding: 10px;
+}
+.kpi-card .k {
+  color: var(--muted);
+  font-size: 11px;
+}
+.kpi-card .v {
+  margin-top: 5px;
+  font-size: 16px;
+  font-weight: 700;
+}
+.positions-grid {
+  display: grid;
+  gap: 8px;
+}
+.position-card {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(23,35,59,.45);
+  padding: 10px;
+}
+.position-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+.position-pair {
+  font-size: 14px;
+  font-weight: 700;
+}
+.side-badge {
+  font-size: 11px;
+  padding: 4px 7px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+}
+.side-long {
+  color: #86efac;
+  border-color: rgba(22,163,74,.5);
+  background: rgba(22,163,74,.15);
+}
+.side-short {
+  color: #fca5a5;
+  border-color: rgba(220,38,38,.5);
+  background: rgba(220,38,38,.15);
+}
+.position-meta {
+  margin-top: 8px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.position-meta b {
+  display: block;
+  margin-top: 3px;
+  color: var(--text);
+}
+.pnl {
+  font-weight: 700;
+}
+.pnl-pos {
+  color: #22c55e;
+}
+.pnl-neg {
+  color: #ef4444;
+}
 .sticky-action {
   position: fixed;
   left: 50%;
@@ -247,6 +329,12 @@ iframe {
 @media (max-width: 720px) {
   .grid-2, .topbar {
     grid-template-columns: 1fr;
+  }
+  .portfolio-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .position-meta {
+    grid-template-columns: 1fr 1fr;
   }
   .preset-grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -307,9 +395,18 @@ iframe {
 
       <div class="card tab-card" id="portfolio">
         <h3>Портфель</h3>
-        <div class="small-note">Нажми кнопку, чтобы отправить запрос в бот и получить обновление в чате.</div>
-        <div style="margin-top:10px;">
-          <button class="action" type="button" onclick="requestPortfolio()">Обновить портфель</button>
+        <div class="portfolio-wrap">
+          <div class="portfolio-kpis">
+            <div class="kpi-card"><div class="k">Equity</div><div class="v" id="pf_equity">10000.00 USDT</div></div>
+            <div class="kpi-card"><div class="k">Free margin</div><div class="v" id="pf_free">8200.00 USDT</div></div>
+            <div class="kpi-card"><div class="k">Used margin</div><div class="v" id="pf_used">1800.00 USDT</div></div>
+            <div class="kpi-card"><div class="k">Unrealized PnL</div><div class="v pnl pnl-pos" id="pf_upnl">+120.00 USDT</div></div>
+          </div>
+          <div class="small-note">Открытые позиции</div>
+          <div class="positions-grid" id="positionsList"></div>
+          <div style="margin-top:2px;">
+            <button class="action" type="button" onclick="requestPortfolio()">Обновить портфель</button>
+          </div>
         </div>
       </div>
     </div>
@@ -491,6 +588,14 @@ const basePrices = {
   DOT: 8.6, AVAX: 41, LINK: 19, BCH: 510
 };
 let activeTab = "trade";
+const demoPortfolioBase = 10000;
+const demoPositions = [
+  { coin: "BTC", side: "long", qty: 0.12, entry: 70800, leverage: 5 },
+  { coin: "ETH", side: "short", qty: 0.9, entry: 3920, leverage: 4 },
+  { coin: "SOL", side: "long", qty: 18, entry: 162, leverage: 3 },
+  { coin: "TRX", side: "long", qty: 2500, entry: 0.122, leverage: 2 }
+];
+let portfolioTick = 0;
 
 if (tg) {
   tg.ready();
@@ -525,6 +630,7 @@ function showTab(id) {
     el.style.display = el.id === id ? "block" : "none";
   });
   activeTab = id;
+  if (id === "portfolio") renderPortfolio();
   updateQuickAction(id);
 }
 
@@ -546,7 +652,8 @@ function setPreset(inputId, value, btn) {
 
 function getSummaryUsdt() {
   const text = document.getElementById("summaryUsdt")?.textContent || "";
-  const num = Number(String(text).replace(",", ".").split(" ")[0]);
+  const raw = String(text).replace("USDT", "").replace(/\s/g, "").replace(/,/g, "");
+  const num = Number(raw);
   return Number.isFinite(num) && num > 0 ? num : 10000;
 }
 
@@ -621,6 +728,82 @@ function updateQuickAction(tab) {
     btn.textContent = "🛟 Отправить сообщение";
   } else {
     btn.textContent = "💼 Обновить портфель";
+  }
+}
+
+function formatMoney(value, digits = 2) {
+  const n = Number(value || 0);
+  return n.toLocaleString("en-US", {
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits
+  });
+}
+
+function marketPrice(coin) {
+  const base = Number(basePrices[coin] || 1);
+  const wave = Math.sin((portfolioTick + coin.charCodeAt(0)) / 3) * 0.012;
+  return base * (1 + wave);
+}
+
+function renderPortfolio() {
+  const container = document.getElementById("positionsList");
+  if (!container) return;
+  container.innerHTML = "";
+
+  let usedMargin = 0;
+  let upnl = 0;
+
+  demoPositions.forEach((pos, idx) => {
+    const mark = marketPrice(pos.coin);
+    const notional = mark * pos.qty;
+    const margin = notional / Math.max(1, pos.leverage || 1);
+    const signed = pos.side === "long" ? 1 : -1;
+    const pnl = (mark - pos.entry) * pos.qty * signed;
+    usedMargin += margin;
+    upnl += pnl;
+
+    const pnlClass = pnl >= 0 ? "pnl-pos" : "pnl-neg";
+    const sideClass = pos.side === "long" ? "side-long" : "side-short";
+    const sideLabel = pos.side === "long" ? "LONG" : "SHORT";
+
+    const card = document.createElement("div");
+    card.className = "position-card";
+    card.innerHTML = `
+      <div class="position-top">
+        <div class="position-pair">${pos.coin}/USDT</div>
+        <div class="side-badge ${sideClass}">${sideLabel} x${pos.leverage}</div>
+      </div>
+      <div class="position-meta">
+        <div>Qty<b>${formatMoney(pos.qty, 6)}</b></div>
+        <div>Entry<b>${formatMoney(pos.entry, pos.entry < 1 ? 6 : 2)}</b></div>
+        <div>Mark<b>${formatMoney(mark, mark < 1 ? 6 : 2)}</b></div>
+      </div>
+      <div class="position-meta" style="grid-template-columns:1fr 1fr;">
+        <div>PnL<b class="pnl ${pnlClass}">${pnl >= 0 ? "+" : ""}${formatMoney(pnl, 2)} USDT</b></div>
+        <div>Margin<b>${formatMoney(margin, 2)} USDT</b></div>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+
+  const equity = demoPortfolioBase + upnl;
+  const free = Math.max(0, equity - usedMargin);
+
+  const set = (id, text) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = text;
+  };
+
+  set("pf_equity", `${formatMoney(equity, 2)} USDT`);
+  set("pf_free", `${formatMoney(free, 2)} USDT`);
+  set("pf_used", `${formatMoney(usedMargin, 2)} USDT`);
+  set("summaryUsdt", `${formatMoney(equity, 2)} USDT`);
+
+  const upnlEl = document.getElementById("pf_upnl");
+  if (upnlEl) {
+    upnlEl.classList.remove("pnl-pos", "pnl-neg");
+    upnlEl.classList.add(upnl >= 0 ? "pnl-pos" : "pnl-neg");
+    upnlEl.textContent = `${upnl >= 0 ? "+" : ""}${formatMoney(upnl, 2)} USDT`;
   }
 }
 
@@ -719,6 +902,8 @@ window.addEventListener("resize", () => updateQuickAction(activeTab));
 
 function requestPortfolio() {
   sendPayload({ action: "portfolio" }, "Запрос на обновление портфеля отправлен.");
+  portfolioTick += 1;
+  renderPortfolio();
 }
 
 function renderMarket() {
@@ -739,8 +924,13 @@ function renderMarket() {
 
 renderMarket();
 fillDemoPrice();
+renderPortfolio();
 showTab("trade");
 updateOrderPreview();
+setInterval(() => {
+  portfolioTick += 1;
+  renderPortfolio();
+}, 9000);
 </script>
 </body>
 </html>
