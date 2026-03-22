@@ -686,6 +686,26 @@ iframe {
         </iframe>
       </div>
 
+      <div class="card">
+        <h3>Order Feed</h3>
+        <div class="order-feed">
+          <div class="order-feed-top">
+            <div class="small-note">Recent orders and status</div>
+            <div style="display:flex; gap:6px;">
+              <button class="order-filter-btn" type="button" onclick="exportOrderFeedCsv()">Export CSV</button>
+              <button class="order-filter-btn" type="button" onclick="seedOrderFeed()">+ Demo</button>
+            </div>
+          </div>
+          <div class="order-filters">
+            <button class="order-filter-btn active" type="button" data-order-filter="all" onclick="setOrderFilter('all', this)">All</button>
+            <button class="order-filter-btn" type="button" data-order-filter="open" onclick="setOrderFilter('open', this)">Open</button>
+            <button class="order-filter-btn" type="button" data-order-filter="closed" onclick="setOrderFilter('closed', this)">Closed</button>
+            <button class="order-filter-btn" type="button" data-order-filter="rejected" onclick="setOrderFilter('rejected', this)">Rejected</button>
+          </div>
+          <div class="feed-list" id="orderFeedList"></div>
+        </div>
+      </div>
+
       <div class="card tab-card" id="portfolio">
         <h3>Портфель</h3>
         <div class="portfolio-wrap">
@@ -962,25 +982,6 @@ iframe {
         </div>
       </div>
 
-      <div class="card">
-        <h3>Order Feed</h3>
-        <div class="order-feed">
-          <div class="order-feed-top">
-            <div class="small-note">Recent orders and status</div>
-            <div style="display:flex; gap:6px;">
-              <button class="order-filter-btn" type="button" onclick="exportOrderFeedCsv()">Export CSV</button>
-              <button class="order-filter-btn" type="button" onclick="seedOrderFeed()">+ Demo</button>
-            </div>
-          </div>
-          <div class="order-filters">
-            <button class="order-filter-btn active" type="button" data-order-filter="all" onclick="setOrderFilter('all', this)">All</button>
-            <button class="order-filter-btn" type="button" data-order-filter="open" onclick="setOrderFilter('open', this)">Open</button>
-            <button class="order-filter-btn" type="button" data-order-filter="closed" onclick="setOrderFilter('closed', this)">Closed</button>
-            <button class="order-filter-btn" type="button" data-order-filter="rejected" onclick="setOrderFilter('rejected', this)">Rejected</button>
-          </div>
-          <div class="feed-list" id="orderFeedList"></div>
-        </div>
-      </div>
     </div>
   </div>
   <div class="sticky-action" id="quickActionBar" style="display:none;">
