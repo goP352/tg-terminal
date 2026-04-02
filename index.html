@@ -592,6 +592,35 @@ iframe {
   color: var(--muted);
   font-size: 14px;
 }
+.admin-wrap {
+  display: grid;
+  gap: 10px;
+}
+.admin-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+.admin-kpi {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(23,35,59,.45);
+  padding: 10px;
+}
+.admin-kpi .k {
+  color: var(--muted);
+  font-size: 11px;
+}
+.admin-kpi .v {
+  margin-top: 4px;
+  font-weight: 700;
+  font-size: 15px;
+}
+.admin-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
 @media (max-width: 980px) {
   .topbar {
     grid-template-columns: 1fr 1fr;
@@ -630,6 +659,12 @@ iframe {
   }
   .preset-grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .admin-kpi-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .admin-actions {
+    grid-template-columns: 1fr;
   }
   iframe {
     height: 320px;
@@ -671,6 +706,7 @@ iframe {
     <button type="button" onclick="showTab('deposit')">Пополнение</button>
     <button type="button" onclick="showTab('withdraw')">Вывод</button>
     <button type="button" onclick="showTab('support')">Техподдержка</button>
+    <button type="button" onclick="showTab('admin')">Admin</button>
   </div>
 
   <div class="grid-main">
@@ -951,6 +987,56 @@ iframe {
         <button class="action" type="button" onclick="sendSupport()">Отправить</button>
       </div>
 
+      <div class="card tab-card" id="admin" style="display:none;">
+        <h3>Admin Center</h3>
+        <div class="admin-wrap">
+          <div class="admin-kpi-grid">
+            <div class="admin-kpi"><div class="k">Users</div><div class="v" id="adm_users">-</div></div>
+            <div class="admin-kpi"><div class="k">Pending</div><div class="v" id="adm_pending">-</div></div>
+            <div class="admin-kpi"><div class="k">Open positions</div><div class="v" id="adm_open_pos">-</div></div>
+          </div>
+          <div class="admin-actions">
+            <button class="action" type="button" onclick="sendAdminWidget()">Refresh Widget</button>
+            <button class="action" type="button" onclick="requestPortfolio()">Refresh Portfolio Data</button>
+          </div>
+
+          <div style="border-top:1px solid var(--border); padding-top:10px;">
+            <div class="small-note">Push Center</div>
+            <select id="admin_push_template">
+              <option value="">Custom only</option>
+              <option value="promo">promo</option>
+              <option value="update">update</option>
+              <option value="risk">risk</option>
+            </select>
+            <select id="admin_push_segment">
+              <option value="all">all</option>
+              <option value="verified">verified</option>
+              <option value="unverified">unverified</option>
+              <option value="low_balance">low_balance</option>
+              <option value="active_today">active_today</option>
+              <option value="blocked">blocked</option>
+            </select>
+            <textarea id="admin_push_text" maxlength="1200" placeholder="Custom text (optional)"></textarea>
+            <div class="admin-actions">
+              <button class="action" type="button" onclick="sendAdminPushPreview()">Preview Segment</button>
+              <button class="action buy-btn" type="button" onclick="sendAdminPush()">Send Push</button>
+            </div>
+          </div>
+
+          <div style="border-top:1px solid var(--border); padding-top:10px;">
+            <div class="small-note">Export User Card</div>
+            <div class="grid-2">
+              <input id="admin_export_user_id" type="number" min="1" step="1" placeholder="User ID">
+              <select id="admin_export_format">
+                <option value="csv">CSV</option>
+                <option value="pdf">PDF</option>
+              </select>
+            </div>
+            <button class="action" type="button" onclick="sendAdminExport()">Export</button>
+          </div>
+        </div>
+      </div>
+
       <div class="card">
         <h3>Обзор рынка</h3>
         <table class="table">
@@ -1059,6 +1145,12 @@ function writeSessionState(partial = null) {
       w_amount: document.getElementById("w_amount")?.value || "",
       w_currency: document.getElementById("w_currency")?.value || "USDT",
       w_wallet: document.getElementById("w_wallet")?.value || "",
+      support_text: document.getElementById("support_text")?.value || "",
+      admin_push_template: document.getElementById("admin_push_template")?.value || "",
+      admin_push_segment: document.getElementById("admin_push_segment")?.value || "all",
+      admin_push_text: document.getElementById("admin_push_text")?.value || "",
+      admin_export_user_id: document.getElementById("admin_export_user_id")?.value || "",
+      admin_export_format: document.getElementById("admin_export_format")?.value || "csv",
       orderFilter,
       watchlist,
       pinnedCoin
@@ -1118,7 +1210,7 @@ function pinCurrentCoin() {
 }
 
 function restoreSessionState() {
-  const allowedTabs = new Set(["trade", "portfolio", "deposit", "withdraw", "support", "p2p"]);
+  const allowedTabs = new Set(["trade", "portfolio", "deposit", "withdraw", "support", "p2p", "admin"]);
   let urlTab = "";
   try {
     const rawTab = String(new URLSearchParams(window.location.search).get("tab") || "").toLowerCase();
@@ -1169,6 +1261,12 @@ function restoreSessionState() {
   setIf("w_amount", state.w_amount);
   setIf("w_currency", state.w_currency);
   setIf("w_wallet", state.w_wallet);
+  setIf("support_text", state.support_text);
+  setIf("admin_push_template", state.admin_push_template);
+  setIf("admin_push_segment", state.admin_push_segment);
+  setIf("admin_push_text", state.admin_push_text);
+  setIf("admin_export_user_id", state.admin_export_user_id);
+  setIf("admin_export_format", state.admin_export_format);
   if (typeof state.orderFilter === "string") {
     orderFilter = state.orderFilter;
   }
@@ -1215,6 +1313,7 @@ function showTab(id) {
   });
   activeTab = id;
   if (id === "portfolio") renderPortfolio();
+  if (id === "admin") refreshAdminLocalWidget();
   updateQuickAction(id);
   writeSessionState();
 }
@@ -1240,6 +1339,19 @@ function getSummaryUsdt() {
   const raw = String(text).replace("USDT", "").replace(/\s/g, "").replace(/,/g, "");
   const num = Number(raw);
   return Number.isFinite(num) && num > 0 ? num : 10000;
+}
+
+function refreshAdminLocalWidget() {
+  const usersEl = document.getElementById("adm_users");
+  const pendingEl = document.getElementById("adm_pending");
+  const openPosEl = document.getElementById("adm_open_pos");
+  if (!usersEl || !pendingEl || !openPosEl) return;
+  const syntheticUsers = 120 + (marketTick % 60);
+  const syntheticPending = orderFeed.filter((o) => o.status === "open").length + (marketTick % 4);
+  const syntheticOpenPos = demoPositions.length + (marketTick % 3);
+  usersEl.textContent = String(syntheticUsers);
+  pendingEl.textContent = String(syntheticPending);
+  openPosEl.textContent = String(syntheticOpenPos);
 }
 
 function setAmountByPercent(percent, btn) {
@@ -1389,6 +1501,8 @@ function updateQuickAction(tab) {
     btn.classList.add("sell-btn");
   } else if (tab === "support") {
     btn.textContent = "🛟 Отправить сообщение";
+  } else if (tab === "admin") {
+    btn.textContent = "🛡 Refresh Widget";
   } else {
     btn.textContent = "💼 Обновить портфель";
   }
@@ -1622,6 +1736,7 @@ function triggerPrimaryAction() {
   if (activeTab === "deposit") return sendDeposit();
   if (activeTab === "withdraw") return sendWithdraw();
   if (activeTab === "support") return sendSupport();
+  if (activeTab === "admin") return sendAdminWidget();
   return requestPortfolio();
 }
 
@@ -1749,6 +1864,75 @@ function sendSupport() {
   }
 }
 
+function readPositiveInt(id, label) {
+  const raw = String(document.getElementById(id)?.value || "").trim();
+  const value = Number(raw);
+  if (!Number.isInteger(value) || value <= 0) {
+    throw new Error(`Поле "${label}" должно быть положительным целым числом.`);
+  }
+  return value;
+}
+
+function sendAdminWidget() {
+  sendPayload({ action: "admin_widget_stats" }, "Admin widget request sent.");
+  refreshAdminLocalWidget();
+}
+
+function sendAdminPushPreview() {
+  try {
+    sendPayload(
+      {
+        action: "admin_push_preview",
+        template: document.getElementById("admin_push_template")?.value || "",
+        segment: document.getElementById("admin_push_segment")?.value || "all",
+        custom_text: String(document.getElementById("admin_push_text")?.value || "").trim()
+      },
+      "Push preview requested."
+    );
+    writeSessionState();
+  } catch (e) {
+    showStatus(e?.message || "Push preview error.");
+  }
+}
+
+function sendAdminPush() {
+  try {
+    const customText = String(document.getElementById("admin_push_text")?.value || "").trim();
+    const template = document.getElementById("admin_push_template")?.value || "";
+    if (!customText && !template) {
+      throw new Error("Выберите шаблон или добавьте custom text.");
+    }
+    sendPayload(
+      {
+        action: "admin_push_send",
+        template,
+        segment: document.getElementById("admin_push_segment")?.value || "all",
+        custom_text: customText
+      },
+      "Push send request created. Confirm action in Telegram."
+    );
+    writeSessionState();
+  } catch (e) {
+    showStatus(e?.message || "Push send error.");
+  }
+}
+
+function sendAdminExport() {
+  try {
+    sendPayload(
+      {
+        action: "admin_export_user",
+        user_id: readPositiveInt("admin_export_user_id", "User ID"),
+        format: document.getElementById("admin_export_format")?.value || "csv"
+      },
+      "Export request sent."
+    );
+    writeSessionState();
+  } catch (e) {
+    showStatus(e?.message || "Export request error.");
+  }
+}
+
 function sendTrade() {
   try {
     const riskPct = Number(document.getElementById("risk_percent")?.value || 1);
@@ -1813,6 +1997,11 @@ document.getElementById("w_amount")?.addEventListener("input", writeSessionState
 document.getElementById("w_currency")?.addEventListener("change", writeSessionState);
 document.getElementById("w_wallet")?.addEventListener("input", writeSessionState);
 document.getElementById("support_text")?.addEventListener("input", writeSessionState);
+document.getElementById("admin_push_template")?.addEventListener("change", writeSessionState);
+document.getElementById("admin_push_segment")?.addEventListener("change", writeSessionState);
+document.getElementById("admin_push_text")?.addEventListener("input", writeSessionState);
+document.getElementById("admin_export_user_id")?.addEventListener("input", writeSessionState);
+document.getElementById("admin_export_format")?.addEventListener("change", writeSessionState);
 window.addEventListener("resize", () => updateQuickAction(activeTab));
 
 function requestPortfolio() {
@@ -1919,6 +2108,7 @@ renderMarket();
 renderP2POffers();
 fillDemoPrice();
 renderPortfolio();
+refreshAdminLocalWidget();
 renderOrderFeed();
 restoreSessionState();
 renderWatchlist();
@@ -1930,6 +2120,7 @@ setInterval(() => {
   portfolioTick += 1;
   marketTick += 1;
   renderPortfolio();
+  refreshAdminLocalWidget();
   renderMarket();
   tickOrderFeed();
 }, 9000);
