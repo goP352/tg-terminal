@@ -17,6 +17,7 @@
   --accent-2: #2563eb;
   --green: #16a34a;
   --red: #dc2626;
+  --side-tape-width: 112px;
 }
 * { box-sizing: border-box; }
 html, body { min-height: 100%; }
@@ -30,7 +31,104 @@ body {
     radial-gradient(circle at bottom right, rgba(22,163,74,.08), transparent 24%),
     linear-gradient(180deg, #0a0f1c 0%, #101827 100%);
 }
+.side-tape {
+  position: fixed;
+  top: 12px;
+  bottom: 12px;
+  width: var(--side-tape-width);
+  border: 1px solid rgba(77,141,255,.25);
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, rgba(16,28,52,.86), rgba(10,17,32,.86)),
+    repeating-linear-gradient(
+      170deg,
+      rgba(77,141,255,.12) 0 2px,
+      rgba(0,0,0,0) 2px 12px
+    );
+  box-shadow:
+    0 16px 36px rgba(0,0,0,.42),
+    inset 0 0 0 1px rgba(255,255,255,.04);
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 1;
+}
+.side-tape.left {
+  left: 12px;
+}
+.side-tape.right {
+  right: 12px;
+}
+.side-tape::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(59,130,246,.14), rgba(14,23,43,0) 28%, rgba(37,99,235,.1));
+  pointer-events: none;
+}
+.side-tape-label {
+  position: relative;
+  z-index: 2;
+  margin: 10px 10px 6px;
+  padding: 7px 8px;
+  border: 1px solid rgba(77,141,255,.28);
+  border-radius: 10px;
+  background: rgba(20,34,61,.72);
+  color: #cfe0ff;
+  font-size: 11px;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  text-align: center;
+}
+.side-tape-track {
+  position: absolute;
+  top: 52px;
+  left: 8px;
+  right: 8px;
+  bottom: 8px;
+  overflow: hidden;
+}
+.side-tape-list {
+  display: grid;
+  gap: 7px;
+  animation: sideTickerUp 24s linear infinite;
+}
+.side-tape.right .side-tape-list {
+  animation-name: sideTickerDown;
+}
+.side-tape-item {
+  border: 1px solid rgba(61,90,140,.55);
+  border-radius: 10px;
+  background: rgba(17,29,51,.62);
+  padding: 6px 7px;
+}
+.side-tape-item .pair {
+  font-size: 11px;
+  line-height: 1.2;
+  color: #d9e6ff;
+  font-weight: 700;
+}
+.side-tape-item .meta {
+  margin-top: 2px;
+  font-size: 11px;
+  line-height: 1.2;
+}
+.side-tape-item .meta.up {
+  color: #34d399;
+}
+.side-tape-item .meta.down {
+  color: #f87171;
+}
+@keyframes sideTickerUp {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-50%); }
+}
+@keyframes sideTickerDown {
+  0% { transform: translateY(-50%); }
+  100% { transform: translateY(0); }
+}
 .shell {
+  position: relative;
+  z-index: 2;
   width: 100%;
   max-width: 1280px;
   min-height: calc(100vh - 24px);
@@ -621,6 +719,78 @@ iframe {
   grid-template-columns: 1fr 1fr;
   gap: 8px;
 }
+.pulse-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.pulse-actions .action {
+  padding: 10px 12px;
+  font-size: 13px;
+}
+.activity-feed {
+  margin-top: 10px;
+  display: grid;
+  gap: 8px;
+  max-height: 320px;
+  overflow: auto;
+  padding-right: 2px;
+}
+.activity-empty {
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  padding: 12px;
+  color: var(--muted);
+  font-size: 13px;
+}
+.activity-row {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(23,35,59,.45);
+  padding: 9px 10px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 8px;
+  align-items: start;
+}
+.activity-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  margin-top: 5px;
+  background: #4d8dff;
+  box-shadow: 0 0 0 4px rgba(77,141,255,.18);
+}
+.activity-row.order .activity-dot {
+  background: #14b8a6;
+  box-shadow: 0 0 0 4px rgba(20,184,166,.18);
+}
+.activity-row.trade .activity-dot {
+  background: #22c55e;
+  box-shadow: 0 0 0 4px rgba(34,197,94,.18);
+}
+.activity-row.alert .activity-dot {
+  background: #f59e0b;
+  box-shadow: 0 0 0 4px rgba(245,158,11,.18);
+}
+.activity-row.export .activity-dot {
+  background: #a78bfa;
+  box-shadow: 0 0 0 4px rgba(167,139,250,.18);
+}
+.activity-row .line {
+  font-size: 13px;
+}
+.activity-row .meta {
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 11px;
+}
+.activity-row .time {
+  color: var(--muted);
+  font-size: 11px;
+  white-space: nowrap;
+}
 @media (max-width: 980px) {
   .topbar {
     grid-template-columns: 1fr 1fr;
@@ -633,6 +803,11 @@ iframe {
   }
   body {
     padding-bottom: 74px;
+  }
+}
+@media (max-width: 1520px) {
+  .side-tape {
+    display: none;
   }
 }
 @media (max-width: 720px) {
@@ -666,6 +841,9 @@ iframe {
   .admin-actions {
     grid-template-columns: 1fr;
   }
+  .pulse-actions {
+    grid-template-columns: 1fr;
+  }
   iframe {
     height: 320px;
   }
@@ -673,27 +851,39 @@ iframe {
 </style>
 </head>
 <body>
+<aside class="side-tape left" aria-hidden="true">
+  <div class="side-tape-label">Flow Tape</div>
+  <div class="side-tape-track">
+    <div class="side-tape-list" id="sideTapeLeft"></div>
+  </div>
+</aside>
+<aside class="side-tape right" aria-hidden="true">
+  <div class="side-tape-label">Signal Tape</div>
+  <div class="side-tape-track">
+    <div class="side-tape-list" id="sideTapeRight"></div>
+  </div>
+</aside>
 <div class="shell">
   <div id="statusBox" class="status-box"></div>
 
   <div class="topbar">
     <div class="metric">
-      <div class="label">Режим</div>
+      <div class="label">?????</div>
       <div class="value">Terminal</div>
       <div class="sub">Telegram Mini App</div>
     </div>
     <div class="metric">
-      <div class="label">Основной рынок</div>
+      <div class="label">?z?'??????? ?'?,??'??????</div>
       <div class="value" id="mainPair">BTC/USDT</div>
       <div class="sub">Live chart view</div>
     </div>
     <div class="metric">
-      <div class="label">Базовый баланс</div>
+      <div class="label">???~?????'???? ??????'?</div>
       <div class="value" id="summaryUsdt">10000.00 USDT</div>
-      <div class="sub">Демо-ликвидность аккаунта</div>
+      <div class="sub">???????-?????????'??'??s?'?' ?????'?'??'??s?</div>
     </div>
     <div class="metric">
-      <div class="label">Статус</div>
+      <div class="label">??'??s??'??s?'?'?'?</div>
       <div class="value">Online</div>
       <div class="sub">Mini App connected</div>
     </div>
@@ -701,18 +891,18 @@ iframe {
 
   <div class="tabbar">
     <button type="button" onclick="showTab('p2p')">P2P</button>
-    <button type="button" onclick="showTab('trade')">Торговля</button>
-    <button type="button" onclick="showTab('portfolio')">Портфель</button>
-    <button type="button" onclick="showTab('deposit')">Пополнение</button>
-    <button type="button" onclick="showTab('withdraw')">Вывод</button>
-    <button type="button" onclick="showTab('support')">Техподдержка</button>
+    <button type="button" onclick="showTab('trade')">???'?,??????'?</button>
+    <button type="button" onclick="showTab('portfolio')">?Y??'?,??'??s?'??z???'?'</button>
+    <button type="button" onclick="showTab('deposit')">?Y?????????</button>
+    <button type="button" onclick="showTab('withdraw')">???T?'??????</button>
+    <button type="button" onclick="showTab('support')">???'?????????'?,????</button>
     <button type="button" onclick="showTab('admin')">Admin</button>
   </div>
 
   <div class="grid-main">
     <div>
       <div class="card">
-        <h3 id="chartTitle">График BTC/USDT</h3>
+        <h3 id="chartTitle">???o?'?,???'??z?? BTC/USDT</h3>
         <iframe
           id="tvChart"
           title="BTC/USDT chart"
@@ -743,7 +933,7 @@ iframe {
       </div>
 
       <div class="card tab-card" id="portfolio">
-        <h3>Портфель</h3>
+        <h3>?Y??'?,??'??s?'??z???'?'</h3>
         <div class="portfolio-wrap">
           <div class="portfolio-kpis">
             <div class="kpi-card"><div class="k">Equity</div><div class="v" id="pf_equity">10000.00 USDT</div></div>
@@ -751,10 +941,10 @@ iframe {
             <div class="kpi-card"><div class="k">Used margin</div><div class="v" id="pf_used">1800.00 USDT</div></div>
             <div class="kpi-card"><div class="k">Unrealized PnL</div><div class="v pnl pnl-pos" id="pf_upnl">+120.00 USDT</div></div>
           </div>
-          <div class="small-note">Открытые позиции</div>
+          <div class="small-note">?z?'??s??'?,??'????'??s?'???? ?????'?????</div>
           <div class="positions-grid" id="positionsList"></div>
           <div style="margin-top:2px;">
-            <button class="action" type="button" onclick="requestPortfolio()">Обновить портфель</button>
+            <button class="action" type="button" onclick="requestPortfolio()">?z??????'??s?'?' ???'?,??'??s?'??z???'?'</button>
           </div>
         </div>
       </div>
@@ -762,7 +952,7 @@ iframe {
 
     <div>
       <div class="card tab-card" id="trade">
-        <h3>Открыть сделку</h3>
+        <h3>?z?'??s??'?,??'????'??s?'?' ?'??????'?'</h3>
         <div class="grid-2">
           <select id="coin">
             <option>BTC</option><option>ETH</option><option>BNB</option><option>SOL</option>
@@ -779,19 +969,19 @@ iframe {
           <div class="watchlist-top">
             <div class="preset-label">Watchlist</div>
             <div style="display:flex; gap:6px;">
-              <button type="button" id="pinCoinBtn" class="watch-toggle" onclick="pinCurrentCoin()">📌 Pin current</button>
-              <button type="button" id="watchToggleBtn" class="watch-toggle" onclick="toggleWatchCoin()">☆ Add to Watchlist</button>
+              <button type="button" id="pinCoinBtn" class="watch-toggle" onclick="pinCurrentCoin()">Pin Current</button>
+              <button type="button" id="watchToggleBtn" class="watch-toggle" onclick="toggleWatchCoin()">Add to Watchlist</button>
             </div>
           </div>
           <div class="watchlist" id="watchlistBar"></div>
         </div>
 
         <div class="grid-2">
-          <input id="amount" type="number" min="0.01" step="0.01" placeholder="Количество" value="0.01">
-          <input id="price" type="number" min="0.00000001" step="0.00000001" placeholder="Цена" value="72000">
+          <input id="amount" type="number" min="0.01" step="0.01" placeholder="?s????'?????'??'??s??" value="0.01">
+          <input id="price" type="number" min="0.00000001" step="0.00000001" placeholder="????" value="72000">
         </div>
         <div class="preset-wrap">
-          <div class="preset-label">Быстрый объем</div>
+          <div class="preset-label">???~?'????'??'??s?'?,??'???? ???'S??</div>
           <div class="preset-grid">
             <button type="button" class="preset-btn" onclick="setPreset('amount', 0.001, this)">0.001</button>
             <button type="button" class="preset-btn" onclick="setPreset('amount', 0.005, this)">0.005</button>
@@ -808,7 +998,7 @@ iframe {
           </div>
         </div>
         <div class="preset-wrap">
-          <div class="preset-label">От баланса USDT</div>
+          <div class="preset-label">?z?'??s ??????'?? USDT</div>
           <div class="preset-grid" style="grid-template-columns:repeat(4,minmax(0,1fr));">
             <button type="button" class="preset-btn" onclick="setAmountByPercent(10, this)">10%</button>
             <button type="button" class="preset-btn" onclick="setAmountByPercent(25, this)">25%</button>
@@ -872,8 +1062,8 @@ iframe {
         </div>
 
         <div class="grid-2" style="margin-top:10px;">
-          <button class="action buy-btn" type="button" onclick="sendTrade()">Открыть ордер</button>
-          <button class="action" type="button" onclick="fillDemoPrice()">Подставить цену</button>
+          <button class="action buy-btn" type="button" onclick="sendTrade()">?z?'??s??'?,??'????'??s?'?' ??'?,????'?,?</button>
+          <button class="action" type="button" onclick="fillDemoPrice()">?Y???'??'??s????'??s?'?' ?'??????'?'</button>
         </div>
       </div>
 
@@ -910,9 +1100,9 @@ iframe {
       </div>
 
       <div class="card tab-card" id="deposit" style="display:none;">
-        <h3>Пополнение</h3>
+        <h3>?Y?????????</h3>
         <div class="grid-2">
-          <input id="dep_amount" type="number" min="0.01" step="0.01" placeholder="Сумма" value="100">
+          <input id="dep_amount" type="number" min="0.01" step="0.01" placeholder="??'?'???" value="100">
           <select id="dep_currency">
             <option>USDT</option><option>BTC</option><option>ETH</option><option>BNB</option>
             <option>SOL</option><option>XRP</option><option>ADA</option><option>DOGE</option>
@@ -921,7 +1111,7 @@ iframe {
           </select>
         </div>
         <div class="preset-wrap">
-          <div class="preset-label">Быстрая сумма</div>
+          <div class="preset-label">???~?'????'??'??s?'?,???'? ?'??'?'???</div>
           <div class="preset-grid">
             <button type="button" class="preset-btn" onclick="setPreset('dep_amount', 10, this)">10</button>
             <button type="button" class="preset-btn" onclick="setPreset('dep_amount', 25, this)">25</button>
@@ -937,17 +1127,17 @@ iframe {
           <option value="USDT TRC20">USDT TRC20</option>
           <option value="USDT TON">USDT TON</option>
           <option value="USDT BEP20">USDT BEP20</option>
-          <option value="Карта РФ (СБП)">Карта РФ (СБП)</option>
-          <option value="Карта РФ (Т-Банк)">Карта РФ (Т-Банк)</option>
-          <option value="Карта РФ (Сбер)">Карта РФ (Сбер)</option>
+          <option value="?s??'?,??'??s? ?? (????~?Y)">?s??'?,??'??s? ?? (????~?Y)</option>
+          <option value="?s??'?,??'??s? ?? (?-???~???)">?s??'?,??'??s? ?? (?-???~???)</option>
+          <option value="?s??'?,??'??s? ?? (????'?,?)">?s??'?,??'??s? ?? (????'?,?)</option>
         </select>
-        <button class="action" type="button" onclick="sendDeposit()">Создать заявку</button>
+        <button class="action" type="button" onclick="sendDeposit()">??????'??s?'?' ???'????'?'</button>
       </div>
 
       <div class="card tab-card" id="withdraw" style="display:none;">
-        <h3>Вывод</h3>
+        <h3>???T?'??????</h3>
         <div class="grid-2">
-          <input id="w_amount" type="number" min="0.01" step="0.01" placeholder="Сумма" value="10">
+          <input id="w_amount" type="number" min="0.01" step="0.01" placeholder="??'?'???" value="10">
           <select id="w_currency">
             <option>USDT</option><option>BTC</option><option>ETH</option><option>BNB</option>
             <option>SOL</option><option>XRP</option><option>ADA</option><option>DOGE</option>
@@ -956,7 +1146,7 @@ iframe {
           </select>
         </div>
         <div class="preset-wrap">
-          <div class="preset-label">Быстрая сумма</div>
+          <div class="preset-label">???~?'????'??'??s?'?,???'? ?'??'?'???</div>
           <div class="preset-grid">
             <button type="button" class="preset-btn active" onclick="setPreset('w_amount', 10, this)">10</button>
             <button type="button" class="preset-btn" onclick="setPreset('w_amount', 25, this)">25</button>
@@ -969,7 +1159,7 @@ iframe {
           </div>
         </div>
         <div class="preset-wrap">
-          <div class="preset-label">От баланса USDT</div>
+          <div class="preset-label">?z?'??s ??????'?? USDT</div>
           <div class="preset-grid" style="grid-template-columns:repeat(4,minmax(0,1fr));">
             <button type="button" class="preset-btn" onclick="setWithdrawByPercent(10, this)">10%</button>
             <button type="button" class="preset-btn" onclick="setWithdrawByPercent(25, this)">25%</button>
@@ -977,14 +1167,14 @@ iframe {
             <button type="button" class="preset-btn" onclick="setWithdrawByPercent(100, this)">Max</button>
           </div>
         </div>
-        <input id="w_wallet" type="text" maxlength="128" placeholder="Кошелек / адрес вывода">
-        <button class="action sell-btn" type="button" onclick="sendWithdraw()">Создать заявку</button>
+        <input id="w_wallet" type="text" maxlength="128" placeholder="?s??'?????? / ???'?,???'? ??'???????">
+        <button class="action sell-btn" type="button" onclick="sendWithdraw()">??????'??s?'?' ???'????'?'</button>
       </div>
 
       <div class="card tab-card" id="support" style="display:none;">
-        <h3>Техподдержка</h3>
-        <textarea id="support_text" maxlength="1000" placeholder="Опишите проблему"></textarea>
-        <button class="action" type="button" onclick="sendSupport()">Отправить</button>
+        <h3>???'?????????'?,????</h3>
+        <textarea id="support_text" maxlength="1000" placeholder="?z???'????'??s? ??'?,???????'?'"></textarea>
+        <button class="action" type="button" onclick="sendSupport()">?z?'??s??'?,?????'??s?'?'</button>
       </div>
 
       <div class="card tab-card" id="admin" style="display:none;">
@@ -1038,13 +1228,13 @@ iframe {
       </div>
 
       <div class="card">
-        <h3>Обзор рынка</h3>
+        <h3>?z????'?,? ?'?,??'??????</h3>
         <table class="table">
           <thead>
             <tr>
-              <th>Актив</th>
-              <th>Цена</th>
-              <th>Изм. 24ч</th>
+              <th>???'??s??</th>
+              <th>????</th>
+              <th>??o??. 24?'???</th>
             </tr>
           </thead>
           <tbody id="marketTable"></tbody>
@@ -1052,11 +1242,11 @@ iframe {
         <div class="market-panel" style="margin-top:10px;">
           <div class="market-top">
             <div class="mover-box">
-              <div class="mover-title">Ð›Ð¸Ð´ÐµÑ€Ñ‹ 24Ñ‡</div>
+              <div class="mover-title">?f???,???f??,??f??,??f??,??f??~???s??f??~??,?? 24?f??~??,??</div>
               <div id="marketLeaders"></div>
             </div>
             <div class="mover-box">
-              <div class="mover-title">ÐÑƒÑ‚ÑÐ°Ð¹Ð´ÐµÑ€Ñ‹ 24Ñ‡</div>
+              <div class="mover-title">?f??,??f??~????T?f??~??,?s?f??~?,??f??,??f??,??f??,??f??,??f??~???s??f??~??,?? 24?f??~??,??</div>
               <div id="marketLosers"></div>
             </div>
           </div>
@@ -1068,10 +1258,22 @@ iframe {
         </div>
       </div>
 
+      <div class="card">
+        <h3>Pulse Stream</h3>
+        <div class="pulse-actions">
+          <button class="action" type="button" onclick="quickPulseSync()">Sync Pulse</button>
+          <button class="action" type="button" onclick="quickSeedOrder()">Add Demo Order</button>
+          <button class="action" type="button" onclick="quickPortfolioSync()">Refresh Portfolio</button>
+          <button class="action" type="button" onclick="quickExportOrders()">Export Orders</button>
+        </div>
+        <div class="small-note">Live events from orders, admin actions and refreshes.</div>
+        <div class="activity-feed" id="activityFeed"></div>
+      </div>
+
     </div>
   </div>
   <div class="sticky-action" id="quickActionBar" style="display:none;">
-    <button class="action buy-btn" id="quickActionBtn" type="button" onclick="triggerPrimaryAction()">📈 Открыть ордер</button>
+    <button class="action buy-btn" id="quickActionBtn" type="button" onclick="triggerPrimaryAction()">Open Order</button>
   </div>
 </div>
 
@@ -1107,6 +1309,8 @@ const orderFeed = [
   { id: 10, pair: "ETH/USDT", side: "SHORT", qty: 0.65, entry: 3860, status: "closed", pnl: 41.2, created_at: Date.now() - 43 * 60 * 1000 },
   { id: 9, pair: "TRX/USDT", side: "LONG", qty: 1200, entry: 0.129, status: "rejected", pnl: 0, created_at: Date.now() - 85 * 60 * 1000 }
 ];
+const activityEvents = [];
+const ACTIVITY_LIMIT = 40;
 
 function readSessionState() {
   try {
@@ -1168,13 +1372,13 @@ function renderWatchlist() {
   watchlist = [...new Set((watchlist || []).filter((c) => coins.includes(c)))].slice(0, 10);
   if (!watchlist.length) watchlist = ["BTC", "ETH", "SOL"];
   bar.innerHTML = watchlist.map((coin) => `
-    <button type="button" class="watch-chip ${coin === selected ? "active" : ""} ${coin === pinnedCoin ? "pinned" : ""}" onclick="selectWatchCoin('${coin}')">${coin}${coin === pinnedCoin ? " 📌" : ""}</button>
+    <button type="button" class="watch-chip ${coin === selected ? "active" : ""} ${coin === pinnedCoin ? "pinned" : ""}" onclick="selectWatchCoin('${coin}')">${coin}${coin === pinnedCoin ? " ?Y??o?'" : ""}</button>
   `).join("");
   if (toggle) {
-    toggle.textContent = watchlist.includes(selected) ? "★ In Watchlist" : "☆ Add to Watchlist";
+    toggle.textContent = watchlist.includes(selected) ? "In Watchlist" : "Add to Watchlist";
   }
   if (pinBtn) {
-    pinBtn.textContent = selected === pinnedCoin ? "📌 Pinned" : "📌 Pin current";
+    pinBtn.textContent = selected === pinnedCoin ? "Pinned" : "Pin Current";
   }
 }
 
@@ -1298,8 +1502,8 @@ function updateChartByCoin(coin) {
   const title = document.getElementById("chartTitle");
   const mainPair = document.getElementById("mainPair");
   if (iframe) iframe.src = chartUrl(symbol);
-  if (title) title.textContent = `График ${pair}`;
-  if (mainPair) mainPair.textContent = coin === pinnedCoin ? `${pair} 📌` : pair;
+  if (title) title.textContent = `Chart ${pair}`;
+  if (mainPair) mainPair.textContent = pair;
 }
 
 function showStatus(text) {
@@ -1490,21 +1694,21 @@ function updateQuickAction(tab) {
   bar.style.display = "block";
   btn.classList.remove("buy-btn", "sell-btn");
   if (tab === "trade") {
-    btn.textContent = "📈 Открыть ордер";
+    btn.textContent = "Open Order";
     btn.classList.add("buy-btn");
   } else if (tab === "p2p") {
-    btn.textContent = "🤝 Create P2P request";
+    btn.textContent = "Create P2P Request";
   } else if (tab === "deposit") {
-    btn.textContent = "📥 Создать заявку";
+    btn.textContent = "Create Deposit Request";
   } else if (tab === "withdraw") {
-    btn.textContent = "📤 Создать заявку";
+    btn.textContent = "Create Withdraw Request";
     btn.classList.add("sell-btn");
   } else if (tab === "support") {
-    btn.textContent = "🛟 Отправить сообщение";
+    btn.textContent = "Send Support Message";
   } else if (tab === "admin") {
-    btn.textContent = "🛡 Refresh Widget";
+    btn.textContent = "Refresh Widget";
   } else {
-    btn.textContent = "💼 Обновить портфель";
+    btn.textContent = "Refresh Portfolio";
   }
 }
 
@@ -1589,6 +1793,213 @@ function formatFeedTime(ts) {
   return d.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
 }
 
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function activityTypeClass(type) {
+  if (type === "order" || type === "market") return "order";
+  if (type === "trade" || type === "portfolio") return "trade";
+  if (type === "export") return "export";
+  if (type === "alert") return "alert";
+  return "";
+}
+
+function pushActivity(type, line, meta = "") {
+  activityEvents.unshift({
+    id: `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+    type,
+    line: String(line || "").trim(),
+    meta: String(meta || "").trim(),
+    ts: Date.now()
+  });
+  if (activityEvents.length > ACTIVITY_LIMIT) {
+    activityEvents.length = ACTIVITY_LIMIT;
+  }
+  renderActivityFeed();
+}
+
+function renderActivityFeed() {
+  const box = document.getElementById("activityFeed");
+  if (!box) return;
+  if (!activityEvents.length) {
+    box.innerHTML = `<div class="activity-empty">No events yet. Use quick actions to warm up the stream.</div>`;
+    return;
+  }
+  box.innerHTML = activityEvents.slice(0, 10).map((event) => {
+    const kindClass = activityTypeClass(event.type);
+    return `
+      <div class="activity-row ${kindClass}">
+        <div class="activity-dot"></div>
+        <div>
+          <div class="line">${escapeHtml(event.line)}</div>
+          <div class="meta">${escapeHtml(event.meta || "terminal update")}</div>
+        </div>
+        <div class="time">${formatFeedTime(event.ts)}</div>
+      </div>
+    `;
+  }).join("");
+}
+
+function quickPulseSync() {
+  portfolioTick += 1;
+  marketTick += 1;
+  renderPortfolio();
+  refreshAdminLocalWidget();
+  renderMarket();
+  tickOrderFeed();
+  pushActivity("market", "Manual pulse sync", "Dashboard metrics recalculated");
+  showStatus("Pulse synced.");
+}
+
+function quickSeedOrder() {
+  seedOrderFeed();
+  showStatus("Demo order added.");
+}
+
+function quickPortfolioSync() {
+  requestPortfolio();
+}
+
+function quickExportOrders() {
+  exportOrderFeedCsv();
+}
+
+function applyUiLocaleFix() {
+  const set = (selector, text) => {
+    const el = document.querySelector(selector);
+    if (el) el.textContent = text;
+  };
+
+  set(".topbar .metric:nth-child(1) .label", "Mode");
+  set(".topbar .metric:nth-child(2) .label", "Main Market");
+  set(".topbar .metric:nth-child(3) .label", "Base Balance");
+  set(".topbar .metric:nth-child(3) .sub", "Demo account liquidity");
+  set(".topbar .metric:nth-child(4) .label", "Status");
+
+  set(".tabbar button[onclick=\"showTab('trade')\"]", "Trade");
+  set(".tabbar button[onclick=\"showTab('portfolio')\"]", "Portfolio");
+  set(".tabbar button[onclick=\"showTab('deposit')\"]", "Deposit");
+  set(".tabbar button[onclick=\"showTab('withdraw')\"]", "Withdraw");
+  set(".tabbar button[onclick=\"showTab('support')\"]", "Support");
+
+  set("#chartTitle", "Chart BTC/USDT");
+  set("#portfolio h3", "Portfolio");
+  set("#trade h3", "Open Position");
+  set("#deposit h3", "Deposit");
+  set("#withdraw h3", "Withdraw");
+  set("#support h3", "Support");
+  set("#admin + .card h3", "Market Overview");
+
+  const marketHead = document.getElementById("marketTable")?.closest("table")?.querySelectorAll("thead th");
+  if (marketHead && marketHead.length >= 3) {
+    marketHead[0].textContent = "Asset";
+    marketHead[1].textContent = "Price";
+    marketHead[2].textContent = "24h Change";
+  }
+
+  const tradePresetLabels = document.querySelectorAll("#trade .preset-label");
+  if (tradePresetLabels[0]) tradePresetLabels[0].textContent = "Watchlist";
+  if (tradePresetLabels[1]) tradePresetLabels[1].textContent = "Quick Size";
+  if (tradePresetLabels[2]) tradePresetLabels[2].textContent = "From USDT Balance";
+  if (tradePresetLabels[3]) tradePresetLabels[3].textContent = "TP Presets";
+  if (tradePresetLabels[4]) tradePresetLabels[4].textContent = "SL Presets";
+
+  const depPresetLabels = document.querySelectorAll("#deposit .preset-label");
+  if (depPresetLabels[0]) depPresetLabels[0].textContent = "Quick Amount";
+  const wPresetLabels = document.querySelectorAll("#withdraw .preset-label");
+  if (wPresetLabels[0]) wPresetLabels[0].textContent = "Quick Amount";
+  if (wPresetLabels[1]) wPresetLabels[1].textContent = "From USDT Balance";
+
+  const amountInput = document.getElementById("amount");
+  const priceInput = document.getElementById("price");
+  const depAmountInput = document.getElementById("dep_amount");
+  const wAmountInput = document.getElementById("w_amount");
+  const walletInput = document.getElementById("w_wallet");
+  const supportText = document.getElementById("support_text");
+  if (amountInput) amountInput.placeholder = "Quantity";
+  if (priceInput) priceInput.placeholder = "Price";
+  if (depAmountInput) depAmountInput.placeholder = "Amount";
+  if (wAmountInput) wAmountInput.placeholder = "Amount";
+  if (walletInput) walletInput.placeholder = "Wallet / withdrawal address";
+  if (supportText) supportText.placeholder = "Describe your issue";
+
+  const openOrderBtn = document.querySelector("#trade .grid-2 .buy-btn");
+  const fillPriceBtn = document.querySelector("#trade .grid-2 .action:not(.buy-btn)");
+  if (openOrderBtn) openOrderBtn.textContent = "Open Order";
+  if (fillPriceBtn) fillPriceBtn.textContent = "Fill Market Price";
+
+  const depBtn = document.querySelector("#deposit .action");
+  const wBtn = document.querySelector("#withdraw .sell-btn");
+  const supportBtn = document.querySelector("#support .action");
+  if (depBtn) depBtn.textContent = "Create Request";
+  if (wBtn) wBtn.textContent = "Create Request";
+  if (supportBtn) supportBtn.textContent = "Send";
+
+  const pinBtn = document.getElementById("pinCoinBtn");
+  const watchBtn = document.getElementById("watchToggleBtn");
+  if (pinBtn) pinBtn.textContent = "Pin Current";
+  if (watchBtn) watchBtn.textContent = "Add to Watchlist";
+
+  const depMethod = document.getElementById("dep_method");
+  if (depMethod && depMethod.options.length >= 6) {
+    depMethod.options[3].text = "RUB Card (SBP)";
+    depMethod.options[4].text = "RUB Card (T-Bank)";
+    depMethod.options[5].text = "RUB Card (Sber)";
+  }
+
+  const quickBtn = document.getElementById("quickActionBtn");
+  if (quickBtn) quickBtn.textContent = "Open Order";
+}
+
+function renderSideTapes(sourceData = null) {
+  const leftEl = document.getElementById("sideTapeLeft");
+  const rightEl = document.getElementById("sideTapeRight");
+  if (!leftEl || !rightEl) return;
+
+  const rows = Array.isArray(sourceData) && sourceData.length
+    ? sourceData.slice(0, 8)
+    : coins.filter((c) => c !== "USDT").slice(0, 8).map((coin, idx) => {
+        const base = Number(basePrices[coin] || 1);
+        const wave = Math.sin((marketTick + idx * 2.1) / 2.8) * 0.03;
+        return {
+          coin,
+          price: base * (1 + wave),
+          delta: wave * 100
+        };
+      });
+
+  const items = rows.map((row) => {
+    const delta = Number(row.delta || 0);
+    const changeText = `${delta >= 0 ? "+" : ""}${delta.toFixed(2)}%`;
+    const dirClass = delta >= 0 ? "up" : "down";
+    const priceNum = Number(row.price || 0);
+    const priceText = formatMoney(priceNum, priceNum < 1 ? 6 : 2);
+    return {
+      pair: `${row.coin}/USDT`,
+      priceText,
+      changeText,
+      dirClass
+    };
+  });
+
+  const stream = [...items, ...items];
+  const chip = (item) => `
+    <div class="side-tape-item">
+      <div class="pair">${item.pair}</div>
+      <div class="meta ${item.dirClass}">${item.changeText} | ${item.priceText}</div>
+    </div>
+  `;
+
+  leftEl.innerHTML = stream.map(chip).join("");
+  rightEl.innerHTML = [...stream].reverse().map(chip).join("");
+}
+
 function statusClass(status) {
   if (status === "open") return "st-open";
   if (status === "closed") return "st-closed";
@@ -1664,19 +2075,28 @@ function addOrderFromTrade() {
   if (orderFeed.length > 30) orderFeed.pop();
   renderOrderFeed();
   writeSessionState();
+  pushActivity("trade", `Order #${orderSeq} opened`, `${coin}/USDT ${direction}`);
 }
 
 function tickOrderFeed() {
+  const transitions = [];
   orderFeed.forEach((o, idx) => {
     if (o.status !== "open") return;
+    const prevStatus = o.status;
     const swing = Math.sin((marketTick + o.id + idx) / 3.4) * 0.009;
     const signed = o.side === "LONG" ? 1 : -1;
     o.pnl = (o.entry * swing * o.qty * 6) * signed;
     if (Math.abs(swing) > 0.0082 && (marketTick + idx) % 5 === 0) {
       o.status = Math.random() > 0.25 ? "closed" : "rejected";
+      if (o.status !== prevStatus) {
+        transitions.push({ id: o.id, pair: o.pair, side: o.side, status: o.status });
+      }
     }
   });
   renderOrderFeed();
+  transitions.slice(0, 3).forEach((item) => {
+    pushActivity("order", `Order #${item.id} ${statusLabel(item.status)}`, `${item.pair} ${item.side}`);
+  });
 }
 
 function seedOrderFeed() {
@@ -1696,6 +2116,10 @@ function seedOrderFeed() {
   });
   if (orderFeed.length > 30) orderFeed.pop();
   renderOrderFeed();
+  const latest = orderFeed[0];
+  if (latest) {
+    pushActivity("order", `Demo order #${latest.id} added`, `${latest.pair} ${latest.side}`);
+  }
 }
 
 function exportOrderFeedCsv() {
@@ -1728,6 +2152,7 @@ function exportOrderFeedCsv() {
   a.remove();
   URL.revokeObjectURL(url);
   showStatus(`CSV exported: ${rows.length} rows.`);
+  pushActivity("export", "Order feed CSV exported", `${rows.length} rows`);
 }
 
 function triggerPrimaryAction() {
@@ -1744,21 +2169,21 @@ function readPositiveNumber(id, label) {
   const value = String(document.getElementById(id).value || "").trim().replace(",", ".");
   const number = Number(value);
   if (!Number.isFinite(number) || number <= 0) {
-    throw new Error(`Поле "${label}" должно быть больше нуля.`);
+    throw new Error(`Field "${label}" must be greater than zero.`);
   }
   return Number(number.toFixed(8));
 }
 
 function readText(id, label, maxLength) {
   const value = document.getElementById(id).value.trim();
-  if (!value) throw new Error(`Поле "${label}" не должно быть пустым.`);
-  if (value.length > maxLength) throw new Error(`Поле "${label}" слишком длинное.`);
+  if (!value) throw new Error(`Field "${label}" must not be empty.`);
+  if (value.length > maxLength) throw new Error(`Field "${label}" is too long.`);
   return value;
 }
 
 function sendPayload(payload, successText) {
   if (!tg) {
-    showStatus("Миниапп открыт вне Telegram.");
+    showStatus("Mini App is opened outside Telegram.");
     return;
   }
   tg.sendData(JSON.stringify(payload));
@@ -1771,13 +2196,13 @@ function sendTradeLegacy() {
       action: "trade",
       coin: document.getElementById("coin").value,
       direction: document.getElementById("direction").value,
-      amount: readPositiveNumber("amount", "Количество"),
-      price: readPositiveNumber("price", "Цена"),
+      amount: readPositiveNumber("amount", "Quantity"),
+      price: readPositiveNumber("price", "Price"),
       take_profit: document.getElementById("take_profit").value.trim(),
       stop_loss: document.getElementById("stop_loss").value.trim()
-    }, "Ордер отправлен. Миниапп остается открытым.");
+    }, "Order sent. Mini App stays open.");
   } catch (e) {
-    showStatus(e?.message || "Проверьте введенные данные.");
+    showStatus(e?.message || "Check input values.");
   }
 }
 
@@ -1822,8 +2247,9 @@ function sendP2P() {
       note
     }, "P2P request sent.");
     writeSessionState();
+    pushActivity("trade", `P2P ${side.toUpperCase()} request created`, `${asset} ${amount} @ ${rate} ${fiat}`);
   } catch (e) {
-    showStatus(e?.message || "Проверьте данные P2P.");
+    showStatus(e?.message || "?Y?'?,?????'?,??'?'?'??s? ?????'???? P2P.");
   }
 }
 
@@ -1831,12 +2257,13 @@ function sendDeposit() {
   try {
     sendPayload({
       action: "deposit",
-      amount: readPositiveNumber("dep_amount", "Сумма"),
+      amount: readPositiveNumber("dep_amount", "Amount"),
       currency: document.getElementById("dep_currency").value,
       requisite_title: document.getElementById("dep_method").value
-    }, "Заявка на пополнение отправлена.");
+    }, "Deposit request sent.");
+    pushActivity("trade", "Deposit request created", `${document.getElementById("dep_currency").value} ${document.getElementById("dep_amount").value}`);
   } catch (e) {
-    showStatus(e?.message || "Проверьте данные пополнения.");
+    showStatus(e?.message || "Check deposit input fields.");
   }
 }
 
@@ -1844,12 +2271,13 @@ function sendWithdraw() {
   try {
     sendPayload({
       action: "withdraw",
-      amount: readPositiveNumber("w_amount", "Сумма"),
+      amount: readPositiveNumber("w_amount", "Amount"),
       currency: document.getElementById("w_currency").value,
-      wallet: readText("w_wallet", "Кошелек", 128)
-    }, "Заявка на вывод отправлена.");
+      wallet: readText("w_wallet", "Wallet", 128)
+    }, "Withdraw request sent.");
+    pushActivity("trade", "Withdraw request created", `${document.getElementById("w_currency").value} ${document.getElementById("w_amount").value}`);
   } catch (e) {
-    showStatus(e?.message || "Проверьте данные вывода.");
+    showStatus(e?.message || "Check withdraw input fields.");
   }
 }
 
@@ -1857,10 +2285,11 @@ function sendSupport() {
   try {
     sendPayload({
       action: "support",
-      message: readText("support_text", "Сообщение", 1000)
-    }, "Сообщение отправлено в поддержку.");
+      message: readText("support_text", "Message", 1000)
+    }, "Support message sent.");
+    pushActivity("alert", "Support message sent", "Ticket queued");
   } catch (e) {
-    showStatus(e?.message || "Проверьте сообщение для поддержки.");
+    showStatus(e?.message || "Check support message.");
   }
 }
 
@@ -1868,7 +2297,7 @@ function readPositiveInt(id, label) {
   const raw = String(document.getElementById(id)?.value || "").trim();
   const value = Number(raw);
   if (!Number.isInteger(value) || value <= 0) {
-    throw new Error(`Поле "${label}" должно быть положительным целым числом.`);
+    throw new Error(`Field "${label}" must be a positive integer.`);
   }
   return value;
 }
@@ -1876,6 +2305,7 @@ function readPositiveInt(id, label) {
 function sendAdminWidget() {
   sendPayload({ action: "admin_widget_stats" }, "Admin widget request sent.");
   refreshAdminLocalWidget();
+  pushActivity("market", "Admin widget refreshed", "Synthetic KPI snapshot updated");
 }
 
 function sendAdminPushPreview() {
@@ -1890,6 +2320,7 @@ function sendAdminPushPreview() {
       "Push preview requested."
     );
     writeSessionState();
+    pushActivity("alert", "Push preview requested", document.getElementById("admin_push_segment")?.value || "all");
   } catch (e) {
     showStatus(e?.message || "Push preview error.");
   }
@@ -1900,7 +2331,7 @@ function sendAdminPush() {
     const customText = String(document.getElementById("admin_push_text")?.value || "").trim();
     const template = document.getElementById("admin_push_template")?.value || "";
     if (!customText && !template) {
-      throw new Error("Выберите шаблон или добавьте custom text.");
+      throw new Error("???T?'??????'?,???'??s? ?'??????? ??? ??????'?'?'??s? custom text.");
     }
     sendPayload(
       {
@@ -1912,6 +2343,7 @@ function sendAdminPush() {
       "Push send request created. Confirm action in Telegram."
     );
     writeSessionState();
+    pushActivity("alert", "Push send request created", document.getElementById("admin_push_segment")?.value || "all");
   } catch (e) {
     showStatus(e?.message || "Push send error.");
   }
@@ -1928,6 +2360,7 @@ function sendAdminExport() {
       "Export request sent."
     );
     writeSessionState();
+    pushActivity("export", "Admin user export requested", `User ID ${document.getElementById("admin_export_user_id")?.value || "-"}`);
   } catch (e) {
     showStatus(e?.message || "Export request error.");
   }
@@ -1953,7 +2386,7 @@ function sendTrade() {
       risk_reward: rrText
     }, "Order sent. Mini App stays open.");
   } catch (e) {
-    showStatus(e?.message || "Проверьте параметры ордера.");
+    showStatus(e?.message || "?Y?'?,?????'?,??'?'?'??s? ???'?,?????'??s?'?,??'??? ??'?,????'?,??.");
   }
 }
 
@@ -2005,9 +2438,10 @@ document.getElementById("admin_export_format")?.addEventListener("change", write
 window.addEventListener("resize", () => updateQuickAction(activeTab));
 
 function requestPortfolio() {
-  sendPayload({ action: "portfolio" }, "Запрос на обновление портфеля отправлен.");
+  sendPayload({ action: "portfolio" }, "???"???'?,???'? ?? ?????????? ???'?,??'??s?'??z???'? ??'??s??'?,??????.");
   portfolioTick += 1;
   renderPortfolio();
+  pushActivity("portfolio", "Portfolio refresh requested", "Equity and margin recalculated");
 }
 
 function renderMarket() {
@@ -2042,6 +2476,7 @@ function renderMarket() {
     tbody.appendChild(tr);
   });
 
+  renderSideTapes(data);
   if (!leadersEl || !losersEl || !heatmapEl || !cardsEl) return;
 
   const leaders = [...data].sort((a, b) => b.delta - a.delta).slice(0, 3);
@@ -2104,12 +2539,15 @@ function renderMarket() {
   }).join("");
 }
 
+applyUiLocaleFix();
 renderMarket();
 renderP2POffers();
 fillDemoPrice();
 renderPortfolio();
 refreshAdminLocalWidget();
 renderOrderFeed();
+pushActivity("market", "Session initialized", "Terminal widgets online");
+pushActivity("order", "Order feed loaded", `${orderFeed.length} entries`);
 restoreSessionState();
 renderWatchlist();
 if (!readSessionState()?.activeTab) showTab("trade");
@@ -2123,6 +2561,10 @@ setInterval(() => {
   refreshAdminLocalWidget();
   renderMarket();
   tickOrderFeed();
+  if (marketTick % 3 === 0) {
+    const openOrders = orderFeed.filter((o) => o.status === "open").length;
+    pushActivity("market", "Auto pulse sync", `${openOrders} open orders monitored`);
+  }
 }, 9000);
 </script>
 </body>
