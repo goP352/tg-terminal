@@ -868,22 +868,22 @@ iframe {
 
   <div class="topbar">
     <div class="metric">
-      <div class="label">?????</div>
+      <div class="label">Mode</div>
       <div class="value">Terminal</div>
       <div class="sub">Telegram Mini App</div>
     </div>
     <div class="metric">
-      <div class="label">?z?'??????? ?'?,??'??????</div>
+      <div class="label">Main Market</div>
       <div class="value" id="mainPair">BTC/USDT</div>
       <div class="sub">Live chart view</div>
     </div>
     <div class="metric">
-      <div class="label">???~?????'???? ??????'?</div>
+      <div class="label">Base Balance</div>
       <div class="value" id="summaryUsdt">10000.00 USDT</div>
-      <div class="sub">???????-?????????'??'??s?'?' ?????'?'??'??s?</div>
+      <div class="sub">Demo account liquidity</div>
     </div>
     <div class="metric">
-      <div class="label">??'??s??'??s?'?'?'?</div>
+      <div class="label">Status</div>
       <div class="value">Online</div>
       <div class="sub">Mini App connected</div>
     </div>
@@ -891,18 +891,18 @@ iframe {
 
   <div class="tabbar">
     <button type="button" onclick="showTab('p2p')">P2P</button>
-    <button type="button" onclick="showTab('trade')">???'?,??????'?</button>
-    <button type="button" onclick="showTab('portfolio')">?Y??'?,??'??s?'??z???'?'</button>
-    <button type="button" onclick="showTab('deposit')">?Y?????????</button>
-    <button type="button" onclick="showTab('withdraw')">???T?'??????</button>
-    <button type="button" onclick="showTab('support')">???'?????????'?,????</button>
+    <button type="button" onclick="showTab('trade')">Trade</button>
+    <button type="button" onclick="showTab('portfolio')">Portfolio</button>
+    <button type="button" onclick="showTab('deposit')">Deposit</button>
+    <button type="button" onclick="showTab('withdraw')">Withdraw</button>
+    <button type="button" onclick="showTab('support')">Support</button>
     <button type="button" onclick="showTab('admin')">Admin</button>
   </div>
 
   <div class="grid-main">
     <div>
       <div class="card">
-        <h3 id="chartTitle">???o?'?,???'??z?? BTC/USDT</h3>
+        <h3 id="chartTitle">Chart BTC/USDT</h3>
         <iframe
           id="tvChart"
           title="BTC/USDT chart"
@@ -933,7 +933,7 @@ iframe {
       </div>
 
       <div class="card tab-card" id="portfolio">
-        <h3>?Y??'?,??'??s?'??z???'?'</h3>
+        <h3>Portfolio</h3>
         <div class="portfolio-wrap">
           <div class="portfolio-kpis">
             <div class="kpi-card"><div class="k">Equity</div><div class="v" id="pf_equity">10000.00 USDT</div></div>
@@ -941,10 +941,10 @@ iframe {
             <div class="kpi-card"><div class="k">Used margin</div><div class="v" id="pf_used">1800.00 USDT</div></div>
             <div class="kpi-card"><div class="k">Unrealized PnL</div><div class="v pnl pnl-pos" id="pf_upnl">+120.00 USDT</div></div>
           </div>
-          <div class="small-note">?z?'??s??'?,??'????'??s?'???? ?????'?????</div>
+          <div class="small-note">Track open positions and account metrics.</div>
           <div class="positions-grid" id="positionsList"></div>
           <div style="margin-top:2px;">
-            <button class="action" type="button" onclick="requestPortfolio()">?z??????'??s?'?' ???'?,??'??s?'??z???'?'</button>
+            <button class="action" type="button" onclick="requestPortfolio()">Refresh Portfolio</button>
           </div>
         </div>
       </div>
@@ -952,7 +952,7 @@ iframe {
 
     <div>
       <div class="card tab-card" id="trade">
-        <h3>?z?'??s??'?,??'????'??s?'?' ?'??????'?'</h3>
+        <h3>Open Position</h3>
         <div class="grid-2">
           <select id="coin">
             <option>BTC</option><option>ETH</option><option>BNB</option><option>SOL</option>
@@ -977,11 +977,11 @@ iframe {
         </div>
 
         <div class="grid-2">
-          <input id="amount" type="number" min="0.01" step="0.01" placeholder="?s????'?????'??'??s??" value="0.01">
-          <input id="price" type="number" min="0.00000001" step="0.00000001" placeholder="????" value="72000">
+          <input id="amount" type="number" min="0.01" step="0.01" placeholder="Quantity" value="0.01">
+          <input id="price" type="number" min="0.00000001" step="0.00000001" placeholder="Price" value="72000">
         </div>
         <div class="preset-wrap">
-          <div class="preset-label">???~?'????'??'??s?'?,??'???? ???'S??</div>
+          <div class="preset-label">Quick Size</div>
           <div class="preset-grid">
             <button type="button" class="preset-btn" onclick="setPreset('amount', 0.001, this)">0.001</button>
             <button type="button" class="preset-btn" onclick="setPreset('amount', 0.005, this)">0.005</button>
@@ -998,7 +998,7 @@ iframe {
           </div>
         </div>
         <div class="preset-wrap">
-          <div class="preset-label">?z?'??s ??????'?? USDT</div>
+          <div class="preset-label">From USDT Balance</div>
           <div class="preset-grid" style="grid-template-columns:repeat(4,minmax(0,1fr));">
             <button type="button" class="preset-btn" onclick="setAmountByPercent(10, this)">10%</button>
             <button type="button" class="preset-btn" onclick="setAmountByPercent(25, this)">25%</button>
@@ -1062,8 +1062,8 @@ iframe {
         </div>
 
         <div class="grid-2" style="margin-top:10px;">
-          <button class="action buy-btn" type="button" onclick="sendTrade()">?z?'??s??'?,??'????'??s?'?' ??'?,????'?,?</button>
-          <button class="action" type="button" onclick="fillDemoPrice()">?Y???'??'??s????'??s?'?' ?'??????'?'</button>
+          <button class="action buy-btn" type="button" onclick="sendTrade()">Open Order</button>
+          <button class="action" type="button" onclick="fillDemoPrice()">Fill Market Price</button>
         </div>
       </div>
 
@@ -1100,9 +1100,9 @@ iframe {
       </div>
 
       <div class="card tab-card" id="deposit" style="display:none;">
-        <h3>?Y?????????</h3>
+        <h3>Deposit</h3>
         <div class="grid-2">
-          <input id="dep_amount" type="number" min="0.01" step="0.01" placeholder="??'?'???" value="100">
+          <input id="dep_amount" type="number" min="0.01" step="0.01" placeholder="Amount" value="100">
           <select id="dep_currency">
             <option>USDT</option><option>BTC</option><option>ETH</option><option>BNB</option>
             <option>SOL</option><option>XRP</option><option>ADA</option><option>DOGE</option>
@@ -1111,7 +1111,7 @@ iframe {
           </select>
         </div>
         <div class="preset-wrap">
-          <div class="preset-label">???~?'????'??'??s?'?,???'? ?'??'?'???</div>
+          <div class="preset-label">Quick Amount</div>
           <div class="preset-grid">
             <button type="button" class="preset-btn" onclick="setPreset('dep_amount', 10, this)">10</button>
             <button type="button" class="preset-btn" onclick="setPreset('dep_amount', 25, this)">25</button>
@@ -1127,17 +1127,17 @@ iframe {
           <option value="USDT TRC20">USDT TRC20</option>
           <option value="USDT TON">USDT TON</option>
           <option value="USDT BEP20">USDT BEP20</option>
-          <option value="?s??'?,??'??s? ?? (????~?Y)">?s??'?,??'??s? ?? (????~?Y)</option>
-          <option value="?s??'?,??'??s? ?? (?-???~???)">?s??'?,??'??s? ?? (?-???~???)</option>
-          <option value="?s??'?,??'??s? ?? (????'?,?)">?s??'?,??'??s? ?? (????'?,?)</option>
+          <option value="RUB Card (SBP)">RUB Card (SBP)</option>
+          <option value="RUB Card (T-Bank)">RUB Card (T-Bank)</option>
+          <option value="RUB Card (Sber)">RUB Card (Sber)</option>
         </select>
-        <button class="action" type="button" onclick="sendDeposit()">??????'??s?'?' ???'????'?'</button>
+        <button class="action" type="button" onclick="sendDeposit()">Create Request</button>
       </div>
 
       <div class="card tab-card" id="withdraw" style="display:none;">
-        <h3>???T?'??????</h3>
+        <h3>Withdraw</h3>
         <div class="grid-2">
-          <input id="w_amount" type="number" min="0.01" step="0.01" placeholder="??'?'???" value="10">
+          <input id="w_amount" type="number" min="0.01" step="0.01" placeholder="Amount" value="10">
           <select id="w_currency">
             <option>USDT</option><option>BTC</option><option>ETH</option><option>BNB</option>
             <option>SOL</option><option>XRP</option><option>ADA</option><option>DOGE</option>
@@ -1146,7 +1146,7 @@ iframe {
           </select>
         </div>
         <div class="preset-wrap">
-          <div class="preset-label">???~?'????'??'??s?'?,???'? ?'??'?'???</div>
+          <div class="preset-label">Quick Amount</div>
           <div class="preset-grid">
             <button type="button" class="preset-btn active" onclick="setPreset('w_amount', 10, this)">10</button>
             <button type="button" class="preset-btn" onclick="setPreset('w_amount', 25, this)">25</button>
@@ -1159,7 +1159,7 @@ iframe {
           </div>
         </div>
         <div class="preset-wrap">
-          <div class="preset-label">?z?'??s ??????'?? USDT</div>
+          <div class="preset-label">From USDT Balance</div>
           <div class="preset-grid" style="grid-template-columns:repeat(4,minmax(0,1fr));">
             <button type="button" class="preset-btn" onclick="setWithdrawByPercent(10, this)">10%</button>
             <button type="button" class="preset-btn" onclick="setWithdrawByPercent(25, this)">25%</button>
@@ -1167,16 +1167,15 @@ iframe {
             <button type="button" class="preset-btn" onclick="setWithdrawByPercent(100, this)">Max</button>
           </div>
         </div>
-        <input id="w_wallet" type="text" maxlength="128" placeholder="?s??'?????? / ???'?,???'? ??'???????">
-        <button class="action sell-btn" type="button" onclick="sendWithdraw()">??????'??s?'?' ???'????'?'</button>
+        <input id="w_wallet" type="text" maxlength="128" placeholder="Wallet / withdrawal address">
+        <button class="action sell-btn" type="button" onclick="sendWithdraw()">Create Request</button>
       </div>
 
       <div class="card tab-card" id="support" style="display:none;">
-        <h3>???'?????????'?,????</h3>
-        <textarea id="support_text" maxlength="1000" placeholder="?z???'????'??s? ??'?,???????'?'"></textarea>
-        <button class="action" type="button" onclick="sendSupport()">?z?'??s??'?,?????'??s?'?'</button>
+        <h3>Support</h3>
+        <textarea id="support_text" maxlength="1000" placeholder="Describe your issue"></textarea>
+        <button class="action" type="button" onclick="sendSupport()">Send Message</button>
       </div>
-
       <div class="card tab-card" id="admin" style="display:none;">
         <h3>Admin Center</h3>
         <div class="admin-wrap">
@@ -1228,13 +1227,13 @@ iframe {
       </div>
 
       <div class="card">
-        <h3>?z????'?,? ?'?,??'??????</h3>
+        <h3>Market Overview</h3>
         <table class="table">
           <thead>
             <tr>
-              <th>???'??s??</th>
-              <th>????</th>
-              <th>??o??. 24?'???</th>
+              <th>Asset</th>
+              <th>Price</th>
+              <th>24h Change</th>
             </tr>
           </thead>
           <tbody id="marketTable"></tbody>
@@ -1242,11 +1241,11 @@ iframe {
         <div class="market-panel" style="margin-top:10px;">
           <div class="market-top">
             <div class="mover-box">
-              <div class="mover-title">?f???,???f??,??f??,??f??,??f??~???s??f??~??,?? 24?f??~??,??</div>
+              <div class="mover-title">Top Gainers 24h</div>
               <div id="marketLeaders"></div>
             </div>
             <div class="mover-box">
-              <div class="mover-title">?f??,??f??~????T?f??~??,?s?f??~?,??f??,??f??,??f??,??f??,??f??~???s??f??~??,?? 24?f??~??,??</div>
+              <div class="mover-title">Top Losers 24h</div>
               <div id="marketLosers"></div>
             </div>
           </div>
@@ -2249,7 +2248,7 @@ function sendP2P() {
     writeSessionState();
     pushActivity("trade", `P2P ${side.toUpperCase()} request created`, `${asset} ${amount} @ ${rate} ${fiat}`);
   } catch (e) {
-    showStatus(e?.message || "?Y?'?,?????'?,??'?'?'??s? ?????'???? P2P.");
+    showStatus(e?.message || "Failed to send P2P request.");
   }
 }
 
@@ -2331,7 +2330,7 @@ function sendAdminPush() {
     const customText = String(document.getElementById("admin_push_text")?.value || "").trim();
     const template = document.getElementById("admin_push_template")?.value || "";
     if (!customText && !template) {
-      throw new Error("???T?'??????'?,???'??s? ?'??????? ??? ??????'?'?'??s? custom text.");
+      throw new Error("Select template or provide custom text.");
     }
     sendPayload(
       {
@@ -2386,7 +2385,7 @@ function sendTrade() {
       risk_reward: rrText
     }, "Order sent. Mini App stays open.");
   } catch (e) {
-    showStatus(e?.message || "?Y?'?,?????'?,??'?'?'??s? ???'?,?????'??s?'?,??'??? ??'?,????'?,??.");
+    showStatus(e?.message || "Failed to send trade order.");
   }
 }
 
@@ -2438,7 +2437,7 @@ document.getElementById("admin_export_format")?.addEventListener("change", write
 window.addEventListener("resize", () => updateQuickAction(activeTab));
 
 function requestPortfolio() {
-  sendPayload({ action: "portfolio" }, "???"???'?,???'? ?? ?????????? ???'?,??'??s?'??z???'? ??'??s??'?,??????.");
+  sendPayload({ action: "portfolio" }, "Portfolio refresh requested.");
   portfolioTick += 1;
   renderPortfolio();
   pushActivity("portfolio", "Portfolio refresh requested", "Equity and margin recalculated");
@@ -2569,3 +2568,5 @@ setInterval(() => {
 </script>
 </body>
 </html>
+
+
