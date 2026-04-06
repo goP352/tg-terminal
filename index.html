@@ -193,6 +193,74 @@ body {
 .tabbar button {
   flex: 1 0 180px;
 }
+.tabbar button.active {
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.32), 0 0 0 1px rgba(77,141,255,.38);
+}
+.mobile-nav {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(17,25,43,.98), rgba(13,20,34,.98));
+}
+.mobile-nav-title {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: .01em;
+}
+.mobile-menu-btn {
+  width: 42px;
+  height: 36px;
+  border: 1px solid rgba(77,141,255,.55);
+  border-radius: 10px;
+  background: linear-gradient(180deg, #2f6fe4, #2257c8);
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  cursor: pointer;
+}
+.mobile-menu-btn span {
+  width: 18px;
+  height: 2px;
+  border-radius: 999px;
+  background: #fff;
+  display: block;
+}
+.mobile-menu {
+  display: none;
+  margin-top: -4px;
+  margin-bottom: 12px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 8px;
+  background: linear-gradient(180deg, rgba(17,25,43,.98), rgba(13,20,34,.98));
+  gap: 8px;
+}
+.mobile-menu.open {
+  display: grid;
+}
+.mobile-menu button {
+  width: 100%;
+  border: 1px solid transparent;
+  border-radius: 11px;
+  background: linear-gradient(180deg, #2f6fe4, #2257c8);
+  color: #fff;
+  font-size: 14px;
+  padding: 11px 12px;
+  text-align: left;
+  cursor: pointer;
+}
+.mobile-menu button.active {
+  border-color: rgba(255,255,255,.5);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.22);
+}
 .card {
   padding: 16px;
   margin-bottom: 12px;
@@ -795,6 +863,12 @@ iframe {
   .topbar {
     grid-template-columns: 1fr 1fr;
   }
+  .tabbar {
+    display: none;
+  }
+  .mobile-nav {
+    display: flex;
+  }
   .grid-main {
     grid-template-columns: 1fr;
   }
@@ -880,7 +954,7 @@ iframe {
     <div class="metric">
       <div class="label">Base Balance</div>
       <div class="value" id="summaryUsdt">10000.00 USDT</div>
-      <div class="sub">Demo account liquidity</div>
+      <div class="sub">Account liquidity</div>
     </div>
     <div class="metric">
       <div class="label">Status</div>
@@ -889,14 +963,33 @@ iframe {
     </div>
   </div>
 
+  <div class="mobile-nav" id="mobileNav">
+    <button class="mobile-menu-btn" id="mobileMenuBtn" type="button" onclick="toggleMobileMenu()" aria-label="Open sections menu" aria-expanded="false">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+    <div class="mobile-nav-title" id="mobileNavTitle">Trade</div>
+  </div>
+
+  <div class="mobile-menu" id="mobileMenu">
+    <button type="button" data-tab="p2p" onclick="mobileSelectTab('p2p')">P2P</button>
+    <button type="button" data-tab="trade" onclick="mobileSelectTab('trade')">Trade</button>
+    <button type="button" data-tab="portfolio" onclick="mobileSelectTab('portfolio')">Portfolio</button>
+    <button type="button" data-tab="deposit" onclick="mobileSelectTab('deposit')">Deposit</button>
+    <button type="button" data-tab="withdraw" onclick="mobileSelectTab('withdraw')">Withdraw</button>
+    <button type="button" data-tab="support" onclick="mobileSelectTab('support')">Support</button>
+    <button type="button" data-tab="admin" onclick="mobileSelectTab('admin')">Admin</button>
+  </div>
+
   <div class="tabbar">
-    <button type="button" onclick="showTab('p2p')">P2P</button>
-    <button type="button" onclick="showTab('trade')">Trade</button>
-    <button type="button" onclick="showTab('portfolio')">Portfolio</button>
-    <button type="button" onclick="showTab('deposit')">Deposit</button>
-    <button type="button" onclick="showTab('withdraw')">Withdraw</button>
-    <button type="button" onclick="showTab('support')">Support</button>
-    <button type="button" onclick="showTab('admin')">Admin</button>
+    <button type="button" data-tab="p2p" onclick="showTab('p2p')">P2P</button>
+    <button type="button" data-tab="trade" onclick="showTab('trade')">Trade</button>
+    <button type="button" data-tab="portfolio" onclick="showTab('portfolio')">Portfolio</button>
+    <button type="button" data-tab="deposit" onclick="showTab('deposit')">Deposit</button>
+    <button type="button" data-tab="withdraw" onclick="showTab('withdraw')">Withdraw</button>
+    <button type="button" data-tab="support" onclick="showTab('support')">Support</button>
+    <button type="button" data-tab="admin" onclick="showTab('admin')">Admin</button>
   </div>
 
   <div class="grid-main">
@@ -919,7 +1012,7 @@ iframe {
             <div class="small-note">Recent orders and status</div>
             <div style="display:flex; gap:6px;">
               <button class="order-filter-btn" type="button" onclick="exportOrderFeedCsv()">Export CSV</button>
-              <button class="order-filter-btn" type="button" onclick="seedOrderFeed()">+ Demo</button>
+              <button class="order-filter-btn" type="button" onclick="seedOrderFeed()">+ New</button>
             </div>
           </div>
           <div class="order-filters">
@@ -1063,7 +1156,7 @@ iframe {
 
         <div class="grid-2" style="margin-top:10px;">
           <button class="action buy-btn" type="button" onclick="sendTrade()">Open Order</button>
-          <button class="action" type="button" onclick="fillDemoPrice()">Fill Market Price</button>
+          <button class="action" type="button" onclick="fillMarketPrice()">Fill Market Price</button>
         </div>
       </div>
 
@@ -1261,7 +1354,7 @@ iframe {
         <h3>Pulse Stream</h3>
         <div class="pulse-actions">
           <button class="action" type="button" onclick="quickPulseSync()">Sync Pulse</button>
-          <button class="action" type="button" onclick="quickSeedOrder()">Add Demo Order</button>
+          <button class="action" type="button" onclick="quickSeedOrder()">Go to Trade</button>
           <button class="action" type="button" onclick="quickPortfolioSync()">Refresh Portfolio</button>
           <button class="action" type="button" onclick="quickExportOrders()">Export Orders</button>
         </div>
@@ -1289,25 +1382,27 @@ const basePrices = {
   DOT: 8.6, AVAX: 41, LINK: 19, BCH: 510
 };
 let activeTab = "trade";
-const demoPortfolioBase = 10000;
-const demoPositions = [
-  { coin: "BTC", side: "long", qty: 0.12, entry: 70800, leverage: 5 },
-  { coin: "ETH", side: "short", qty: 0.9, entry: 3920, leverage: 4 },
-  { coin: "SOL", side: "long", qty: 18, entry: 162, leverage: 3 },
-  { coin: "TRX", side: "long", qty: 2500, entry: 0.122, leverage: 2 }
-];
+const TAB_LABELS = {
+  p2p: "P2P",
+  trade: "Trade",
+  portfolio: "Portfolio",
+  deposit: "Deposit",
+  withdraw: "Withdraw",
+  support: "Support",
+  admin: "Admin"
+};
+const UI_LIVE_MODE = true;
+const LIVE_START_EQUITY_USDT = 10000;
+let livePortfolioBase = LIVE_START_EQUITY_USDT;
+const portfolioPositions = [];
 let portfolioTick = 0;
 let marketTick = 0;
-let orderSeq = 11;
+let orderSeq = 0;
 let orderFilter = "all";
 const SESSION_KEY = "tg_terminal_session_v2";
 let watchlist = ["BTC", "ETH", "SOL", "TRX", "TON"];
 let pinnedCoin = "BTC";
-const orderFeed = [
-  { id: 11, pair: "BTC/USDT", side: "LONG", qty: 0.02, entry: 71250, status: "open", pnl: 24.9, created_at: Date.now() - 14 * 60 * 1000 },
-  { id: 10, pair: "ETH/USDT", side: "SHORT", qty: 0.65, entry: 3860, status: "closed", pnl: 41.2, created_at: Date.now() - 43 * 60 * 1000 },
-  { id: 9, pair: "TRX/USDT", side: "LONG", qty: 1200, entry: 0.129, status: "rejected", pnl: 0, created_at: Date.now() - 85 * 60 * 1000 }
-];
+const orderFeed = [];
 const activityEvents = [];
 const ACTIVITY_LIMIT = 40;
 
@@ -1356,7 +1451,8 @@ function writeSessionState(partial = null) {
       admin_export_format: document.getElementById("admin_export_format")?.value || "csv",
       orderFilter,
       watchlist,
-      pinnedCoin
+      pinnedCoin,
+      portfolioPositions
     };
     localStorage.setItem(SESSION_KEY, JSON.stringify({ ...base, ...snapshot }));
   } catch (e) {}
@@ -1371,7 +1467,7 @@ function renderWatchlist() {
   watchlist = [...new Set((watchlist || []).filter((c) => coins.includes(c)))].slice(0, 10);
   if (!watchlist.length) watchlist = ["BTC", "ETH", "SOL"];
   bar.innerHTML = watchlist.map((coin) => `
-    <button type="button" class="watch-chip ${coin === selected ? "active" : ""} ${coin === pinnedCoin ? "pinned" : ""}" onclick="selectWatchCoin('${coin}')">${coin}${coin === pinnedCoin ? " ?Y??o?'" : ""}</button>
+    <button type="button" class="watch-chip ${coin === selected ? "active" : ""} ${coin === pinnedCoin ? "pinned" : ""}" onclick="selectWatchCoin('${coin}')">${coin}${coin === pinnedCoin ? " | PIN" : ""}</button>
   `).join("");
   if (toggle) {
     toggle.textContent = watchlist.includes(selected) ? "In Watchlist" : "Add to Watchlist";
@@ -1432,6 +1528,26 @@ function restoreSessionState() {
   if (typeof state.pinnedCoin === "string" && coins.includes(state.pinnedCoin)) {
     pinnedCoin = state.pinnedCoin;
   }
+  if (Array.isArray(state.portfolioPositions)) {
+    portfolioPositions.length = 0;
+    state.portfolioPositions.slice(0, 50).forEach((p) => {
+      const coin = String(p?.coin || "").toUpperCase();
+      const side = String(p?.side || "").toLowerCase();
+      const qty = Number(p?.qty || 0);
+      const entry = Number(p?.entry || 0);
+      const leverage = Number(p?.leverage || 1);
+      if (!coins.includes(coin) || coin === "USDT") return;
+      if (!["long", "short"].includes(side)) return;
+      if (!(qty > 0 && entry > 0)) return;
+      portfolioPositions.push({
+        coin,
+        side,
+        qty,
+        entry,
+        leverage: Number.isFinite(leverage) && leverage > 0 ? leverage : 1
+      });
+    });
+  }
   const setIf = (id, val) => {
     const el = document.getElementById(id);
     if (!el || val === undefined || val === null || val === "") return;
@@ -1478,7 +1594,7 @@ function restoreSessionState() {
   setOrderFilter(orderFilter, activeBtn);
   const coin = document.getElementById("coin")?.value || "BTC";
   updateChartByCoin(coin);
-  if (!document.getElementById("price")?.value) fillDemoPrice();
+  if (!document.getElementById("price")?.value) fillMarketPrice();
   showTab(urlTab || state.activeTab || "trade");
 }
 
@@ -1510,18 +1626,50 @@ function showStatus(text) {
   statusBox.style.display = "block";
 }
 
+function closeMobileMenu() {
+  const menu = document.getElementById("mobileMenu");
+  const btn = document.getElementById("mobileMenuBtn");
+  if (menu) menu.classList.remove("open");
+  if (btn) btn.setAttribute("aria-expanded", "false");
+}
+
+function toggleMobileMenu(forceOpen = null) {
+  const menu = document.getElementById("mobileMenu");
+  const btn = document.getElementById("mobileMenuBtn");
+  if (!menu) return;
+  const next = forceOpen === null ? !menu.classList.contains("open") : !!forceOpen;
+  menu.classList.toggle("open", next);
+  if (btn) btn.setAttribute("aria-expanded", next ? "true" : "false");
+}
+
+function syncTabUi(id) {
+  const nextLabel = TAB_LABELS[id] || "Trade";
+  const mobileTitle = document.getElementById("mobileNavTitle");
+  if (mobileTitle) mobileTitle.textContent = nextLabel;
+  document.querySelectorAll(".tabbar [data-tab], .mobile-menu [data-tab]").forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.tab === id);
+  });
+}
+
+function mobileSelectTab(id) {
+  showTab(id);
+  closeMobileMenu();
+}
+
 function showTab(id) {
   document.querySelectorAll(".tab-card").forEach(el => {
     el.style.display = el.id === id ? "block" : "none";
   });
   activeTab = id;
+  syncTabUi(id);
+  closeMobileMenu();
   if (id === "portfolio") renderPortfolio();
   if (id === "admin") refreshAdminLocalWidget();
   updateQuickAction(id);
   writeSessionState();
 }
 
-function fillDemoPrice() {
+function fillMarketPrice() {
   const coin = document.getElementById("coin").value;
   document.getElementById("price").value = basePrices[coin] || 1;
 }
@@ -1551,7 +1699,7 @@ function refreshAdminLocalWidget() {
   if (!usersEl || !pendingEl || !openPosEl) return;
   const syntheticUsers = 120 + (marketTick % 60);
   const syntheticPending = orderFeed.filter((o) => o.status === "open").length + (marketTick % 4);
-  const syntheticOpenPos = demoPositions.length + (marketTick % 3);
+  const syntheticOpenPos = portfolioPositions.length + (marketTick % 3);
   usersEl.textContent = String(syntheticUsers);
   pendingEl.textContent = String(syntheticPending);
   openPosEl.textContent = String(syntheticOpenPos);
@@ -1721,6 +1869,7 @@ function formatMoney(value, digits = 2) {
 
 function marketPrice(coin) {
   const base = Number(basePrices[coin] || 1);
+  if (UI_LIVE_MODE) return base;
   const wave = Math.sin((portfolioTick + coin.charCodeAt(0)) / 3) * 0.012;
   return base * (1 + wave);
 }
@@ -1733,7 +1882,11 @@ function renderPortfolio() {
   let usedMargin = 0;
   let upnl = 0;
 
-  demoPositions.forEach((pos, idx) => {
+  if (!portfolioPositions.length) {
+    container.innerHTML = `<div class="empty">No open positions yet.</div>`;
+  }
+
+  portfolioPositions.forEach((pos) => {
     const mark = marketPrice(pos.coin);
     const notional = mark * pos.qty;
     const margin = notional / Math.max(1, pos.leverage || 1);
@@ -1766,7 +1919,7 @@ function renderPortfolio() {
     container.appendChild(card);
   });
 
-  const equity = demoPortfolioBase + upnl;
+  const equity = livePortfolioBase + upnl;
   const free = Math.max(0, equity - usedMargin);
 
   const set = (id, text) => {
@@ -1846,6 +1999,15 @@ function renderActivityFeed() {
 }
 
 function quickPulseSync() {
+  if (UI_LIVE_MODE) {
+    renderPortfolio();
+    refreshAdminLocalWidget();
+    renderMarket();
+    renderOrderFeed();
+    pushActivity("market", "Manual refresh", "Live mode");
+    showStatus("Live data refreshed.");
+    return;
+  }
   portfolioTick += 1;
   marketTick += 1;
   renderPortfolio();
@@ -1858,7 +2020,7 @@ function quickPulseSync() {
 
 function quickSeedOrder() {
   seedOrderFeed();
-  showStatus("Demo order added.");
+  if (!UI_LIVE_MODE) showStatus("Synthetic order added.");
 }
 
 function quickPortfolioSync() {
@@ -1878,7 +2040,7 @@ function applyUiLocaleFix() {
   set(".topbar .metric:nth-child(1) .label", "Mode");
   set(".topbar .metric:nth-child(2) .label", "Main Market");
   set(".topbar .metric:nth-child(3) .label", "Base Balance");
-  set(".topbar .metric:nth-child(3) .sub", "Demo account liquidity");
+  set(".topbar .metric:nth-child(3) .sub", "Account liquidity");
   set(".topbar .metric:nth-child(4) .label", "Status");
 
   set(".tabbar button[onclick=\"showTab('trade')\"]", "Trade");
@@ -1965,6 +2127,13 @@ function renderSideTapes(sourceData = null) {
     ? sourceData.slice(0, 8)
     : coins.filter((c) => c !== "USDT").slice(0, 8).map((coin, idx) => {
         const base = Number(basePrices[coin] || 1);
+        if (UI_LIVE_MODE) {
+          return {
+            coin,
+            price: base,
+            delta: 0
+          };
+        }
         const wave = Math.sin((marketTick + idx * 2.1) / 2.8) * 0.03;
         return {
           coin,
@@ -2052,6 +2221,20 @@ function setOrderFilter(filter, btn) {
   writeSessionState();
 }
 
+function addPositionFromTrade(coin, direction, qty, entry) {
+  if (!(qty > 0 && entry > 0)) return;
+  const side = direction === "SHORT" ? "short" : "long";
+  portfolioPositions.unshift({
+    coin,
+    side,
+    qty,
+    entry,
+    leverage: 1
+  });
+  if (portfolioPositions.length > 50) portfolioPositions.pop();
+  renderPortfolio();
+}
+
 function addOrderFromTrade() {
   const coin = document.getElementById("coin")?.value || "BTC";
   const direction = (document.getElementById("direction")?.value || "long").toUpperCase();
@@ -2072,12 +2255,17 @@ function addOrderFromTrade() {
     created_at: Date.now()
   });
   if (orderFeed.length > 30) orderFeed.pop();
+  addPositionFromTrade(coin, direction, qty, entry);
   renderOrderFeed();
   writeSessionState();
   pushActivity("trade", `Order #${orderSeq} opened`, `${coin}/USDT ${direction}`);
 }
 
 function tickOrderFeed() {
+  if (UI_LIVE_MODE) {
+    renderOrderFeed();
+    return;
+  }
   const transitions = [];
   orderFeed.forEach((o, idx) => {
     if (o.status !== "open") return;
@@ -2099,6 +2287,11 @@ function tickOrderFeed() {
 }
 
 function seedOrderFeed() {
+  if (UI_LIVE_MODE) {
+    showTab("trade");
+    showStatus("Live mode: create orders only from the Trade form.");
+    return;
+  }
   const pairs = ["BTC/USDT", "ETH/USDT", "SOL/USDT", "TRX/USDT"];
   const pair = pairs[(marketTick + orderSeq) % pairs.length];
   const base = Number(basePrices[pair.split("/")[0]] || 1);
@@ -2117,7 +2310,7 @@ function seedOrderFeed() {
   renderOrderFeed();
   const latest = orderFeed[0];
   if (latest) {
-    pushActivity("order", `Demo order #${latest.id} added`, `${latest.pair} ${latest.side}`);
+    pushActivity("order", `Synthetic order #${latest.id} added`, `${latest.pair} ${latest.side}`);
   }
 }
 
@@ -2208,6 +2401,10 @@ function sendTradeLegacy() {
 function renderP2POffers() {
   const box = document.getElementById("p2pOffers");
   if (!box) return;
+  if (UI_LIVE_MODE) {
+    box.innerHTML = `<div class="feed-empty">Live offers are managed by backend requests. Use the form below to create your P2P order.</div>`;
+    return;
+  }
   const offers = [
     { side: "BUY", asset: "USDT", fiat: "RUB", rate: 94.3, min: 3000, max: 180000, method: "SBP" },
     { side: "SELL", asset: "USDT", fiat: "RUB", rate: 93.8, min: 5000, max: 220000, method: "Tinkoff" },
@@ -2393,7 +2590,7 @@ const coinSelect = document.getElementById("coin");
 if (coinSelect) {
   coinSelect.addEventListener("change", () => {
     const coin = coinSelect.value;
-    fillDemoPrice();
+    fillMarketPrice();
     updateChartByCoin(coin);
     updateOrderPreview();
     renderWatchlist();
@@ -2434,11 +2631,25 @@ document.getElementById("admin_push_segment")?.addEventListener("change", writeS
 document.getElementById("admin_push_text")?.addEventListener("input", writeSessionState);
 document.getElementById("admin_export_user_id")?.addEventListener("input", writeSessionState);
 document.getElementById("admin_export_format")?.addEventListener("change", writeSessionState);
-window.addEventListener("resize", () => updateQuickAction(activeTab));
+window.addEventListener("resize", () => {
+  if (window.innerWidth > 980) closeMobileMenu();
+  updateQuickAction(activeTab);
+});
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") closeMobileMenu();
+});
+document.addEventListener("click", (event) => {
+  const menu = document.getElementById("mobileMenu");
+  const nav = document.getElementById("mobileNav");
+  if (!menu || !nav || !menu.classList.contains("open")) return;
+  const target = event.target;
+  if (target instanceof Node && (menu.contains(target) || nav.contains(target))) return;
+  closeMobileMenu();
+});
 
 function requestPortfolio() {
   sendPayload({ action: "portfolio" }, "Portfolio refresh requested.");
-  portfolioTick += 1;
+  if (!UI_LIVE_MODE) portfolioTick += 1;
   renderPortfolio();
   pushActivity("portfolio", "Portfolio refresh requested", "Equity and margin recalculated");
 }
@@ -2457,6 +2668,9 @@ function renderMarket() {
   const assets = coins.filter(c => c !== "USDT");
   const data = assets.map((coin, idx) => {
     const base = Number(basePrices[coin] || 1);
+    if (UI_LIVE_MODE) {
+      return { coin, price: base, delta: 0 };
+    }
     const wave1 = Math.sin((marketTick + idx * 1.9) / 2.5) * 0.018;
     const wave2 = Math.cos((marketTick + idx * 2.7) / 3.2) * 0.009;
     const delta = (wave1 + wave2) * 100;
@@ -2503,6 +2717,9 @@ function renderMarket() {
   }).join("");
 
   const sparkline = (idx) => {
+    if (UI_LIVE_MODE) {
+      return { path: "0,14 100,14", last: 0 };
+    }
     const points = [];
     for (let i = 0; i < 16; i++) {
       const t = marketTick - (16 - i) * 0.7;
@@ -2541,11 +2758,14 @@ function renderMarket() {
 applyUiLocaleFix();
 renderMarket();
 renderP2POffers();
-fillDemoPrice();
+fillMarketPrice();
 renderPortfolio();
 refreshAdminLocalWidget();
 renderOrderFeed();
 pushActivity("market", "Session initialized", "Terminal widgets online");
+if (UI_LIVE_MODE) {
+  pushActivity("market", "Live mode enabled", "UI simulations are disabled");
+}
 pushActivity("order", "Order feed loaded", `${orderFeed.length} entries`);
 restoreSessionState();
 renderWatchlist();
@@ -2553,18 +2773,20 @@ if (!readSessionState()?.activeTab) showTab("trade");
 setRiskPercent(document.getElementById("risk_percent")?.value || 1);
 updateOrderPreview();
 writeSessionState();
-setInterval(() => {
-  portfolioTick += 1;
-  marketTick += 1;
-  renderPortfolio();
-  refreshAdminLocalWidget();
-  renderMarket();
-  tickOrderFeed();
-  if (marketTick % 3 === 0) {
-    const openOrders = orderFeed.filter((o) => o.status === "open").length;
-    pushActivity("market", "Auto pulse sync", `${openOrders} open orders monitored`);
-  }
-}, 9000);
+if (!UI_LIVE_MODE) {
+  setInterval(() => {
+    portfolioTick += 1;
+    marketTick += 1;
+    renderPortfolio();
+    refreshAdminLocalWidget();
+    renderMarket();
+    tickOrderFeed();
+    if (marketTick % 3 === 0) {
+      const openOrders = orderFeed.filter((o) => o.status === "open").length;
+      pushActivity("market", "Auto pulse sync", `${openOrders} open orders monitored`);
+    }
+  }, 9000);
+}
 </script>
 </body>
 </html>
