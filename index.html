@@ -953,7 +953,7 @@ iframe {
     </div>
     <div class="metric">
       <div class="label">Base Balance</div>
-      <div class="value" id="summaryUsdt">10000.00 USDT</div>
+      <div class="value" id="summaryUsdt">0.00 USDT</div>
       <div class="sub">Account liquidity</div>
     </div>
     <div class="metric">
@@ -1029,10 +1029,10 @@ iframe {
         <h3>Portfolio</h3>
         <div class="portfolio-wrap">
           <div class="portfolio-kpis">
-            <div class="kpi-card"><div class="k">Equity</div><div class="v" id="pf_equity">10000.00 USDT</div></div>
-            <div class="kpi-card"><div class="k">Free margin</div><div class="v" id="pf_free">8200.00 USDT</div></div>
-            <div class="kpi-card"><div class="k">Used margin</div><div class="v" id="pf_used">1800.00 USDT</div></div>
-            <div class="kpi-card"><div class="k">Unrealized PnL</div><div class="v pnl pnl-pos" id="pf_upnl">+120.00 USDT</div></div>
+            <div class="kpi-card"><div class="k">Equity</div><div class="v" id="pf_equity">0.00 USDT</div></div>
+            <div class="kpi-card"><div class="k">Free margin</div><div class="v" id="pf_free">0.00 USDT</div></div>
+            <div class="kpi-card"><div class="k">Used margin</div><div class="v" id="pf_used">0.00 USDT</div></div>
+            <div class="kpi-card"><div class="k">Unrealized PnL</div><div class="v pnl pnl-pos" id="pf_upnl">0.00 USDT</div></div>
           </div>
           <div class="small-note">Track open positions and account metrics.</div>
           <div class="positions-grid" id="positionsList"></div>
@@ -1135,7 +1135,7 @@ iframe {
             <label class="risk-check"><input id="risk_auto_size" type="checkbox" checked> Auto size by SL</label>
           </div>
           <div class="risk-grid">
-            <div class="risk-item">Risk amount<b id="risk_amount_usdt">100.00 USDT</b></div>
+            <div class="risk-item">Risk amount<b id="risk_amount_usdt">0.00 USDT</b></div>
             <div class="risk-item">SL distance<b id="risk_distance">0.00000000</b></div>
             <div class="risk-item">Recommended qty<b id="risk_rec_qty">0.00000000</b></div>
             <div class="risk-item">R:R<b id="risk_rr">N/A</b></div>
@@ -1174,7 +1174,17 @@ iframe {
             <option>SOL</option><option>XRP</option><option>ADA</option><option>DOGE</option>
             <option>TRX</option><option>TON</option><option>LTC</option><option>MATIC</option>
             <option>DOT</option><option>AVAX</option><option>LINK</option><option>BCH</option>
+            <option value="CUSTOM">Custom ticker</option>
           </select>
+        </div>
+        <input id="p2p_asset_custom" type="text" maxlength="15" placeholder="Custom BASE asset (optional, e.g. XMR)">
+        <div class="grid-2">
+          <select id="p2p_quote_asset">
+            <option>USDT</option><option>RUB</option><option>USD</option><option>EUR</option><option>KZT</option>
+            <option>BTC</option><option>ETH</option><option>TON</option>
+            <option value="CUSTOM">Custom ticker</option>
+          </select>
+          <input id="p2p_quote_custom" type="text" maxlength="15" placeholder="Custom QUOTE asset (optional, e.g. USDC)">
         </div>
         <div class="grid-2">
           <input id="p2p_amount" type="number" min="1" step="0.01" placeholder="Amount" value="100">
@@ -1392,7 +1402,7 @@ const TAB_LABELS = {
   admin: "Admin"
 };
 const UI_LIVE_MODE = true;
-const LIVE_START_EQUITY_USDT = 10000;
+const LIVE_START_EQUITY_USDT = 0;
 let livePortfolioBase = LIVE_START_EQUITY_USDT;
 const portfolioPositions = [];
 let portfolioTick = 0;
@@ -1435,6 +1445,9 @@ function writeSessionState(partial = null) {
       dep_method: document.getElementById("dep_method")?.value || "USDT TRC20",
       p2p_side: document.getElementById("p2p_side")?.value || "buy",
       p2p_asset: document.getElementById("p2p_asset")?.value || "USDT",
+      p2p_asset_custom: document.getElementById("p2p_asset_custom")?.value || "",
+      p2p_quote_asset: document.getElementById("p2p_quote_asset")?.value || "USDT",
+      p2p_quote_custom: document.getElementById("p2p_quote_custom")?.value || "",
       p2p_amount: document.getElementById("p2p_amount")?.value || "",
       p2p_rate: document.getElementById("p2p_rate")?.value || "",
       p2p_fiat: document.getElementById("p2p_fiat")?.value || "RUB",
@@ -1572,6 +1585,9 @@ function restoreSessionState() {
   setIf("dep_method", state.dep_method);
   setIf("p2p_side", state.p2p_side);
   setIf("p2p_asset", state.p2p_asset);
+  setIf("p2p_asset_custom", state.p2p_asset_custom);
+  setIf("p2p_quote_asset", state.p2p_quote_asset);
+  setIf("p2p_quote_custom", state.p2p_quote_custom);
   setIf("p2p_amount", state.p2p_amount);
   setIf("p2p_rate", state.p2p_rate);
   setIf("p2p_fiat", state.p2p_fiat);
@@ -1689,7 +1705,7 @@ function getSummaryUsdt() {
   const text = document.getElementById("summaryUsdt")?.textContent || "";
   const raw = String(text).replace("USDT", "").replace(/\s/g, "").replace(/,/g, "");
   const num = Number(raw);
-  return Number.isFinite(num) && num > 0 ? num : 10000;
+  return Number.isFinite(num) && num >= 0 ? num : 0;
 }
 
 function refreshAdminLocalWidget() {
@@ -2426,16 +2442,25 @@ function renderP2POffers() {
 function sendP2P() {
   try {
     const side = String(document.getElementById("p2p_side")?.value || "buy").toLowerCase();
-    const asset = String(document.getElementById("p2p_asset")?.value || "USDT").toUpperCase();
+    const selectedAsset = String(document.getElementById("p2p_asset")?.value || "USDT").toUpperCase();
+    const customAsset = String(document.getElementById("p2p_asset_custom")?.value || "").trim().toUpperCase();
+    const asset = customAsset || (selectedAsset === "CUSTOM" ? "" : selectedAsset);
+    if (!asset) throw new Error("Enter BASE asset ticker.");
+    const selectedQuote = String(document.getElementById("p2p_quote_asset")?.value || "USDT").toUpperCase();
+    const customQuote = String(document.getElementById("p2p_quote_custom")?.value || "").trim().toUpperCase();
+    const quote_asset = customQuote || (selectedQuote === "CUSTOM" ? "" : selectedQuote);
+    if (!quote_asset) throw new Error("Enter QUOTE asset ticker.");
+    if (asset === quote_asset) throw new Error("BASE and QUOTE must be different.");
     const amount = readPositiveNumber("p2p_amount", "Amount");
     const rate = readPositiveNumber("p2p_rate", "Rate");
-    const fiat = String(document.getElementById("p2p_fiat")?.value || "RUB").toUpperCase();
+    const fiat = String(document.getElementById("p2p_fiat")?.value || quote_asset).toUpperCase();
     const method = String(document.getElementById("p2p_method")?.value || "Any");
     const note = String(document.getElementById("p2p_note")?.value || "").trim();
     sendPayload({
       action: "p2p_order",
       side,
       asset,
+      quote_asset,
       amount,
       rate,
       fiat,
@@ -2443,7 +2468,7 @@ function sendP2P() {
       note
     }, "P2P request sent.");
     writeSessionState();
-    pushActivity("trade", `P2P ${side.toUpperCase()} request created`, `${asset} ${amount} @ ${rate} ${fiat}`);
+    pushActivity("trade", `P2P ${side.toUpperCase()} request created`, `${asset}/${quote_asset} ${amount} @ ${rate}`);
   } catch (e) {
     showStatus(e?.message || "Failed to send P2P request.");
   }
@@ -2617,6 +2642,9 @@ document.getElementById("dep_currency")?.addEventListener("change", writeSession
 document.getElementById("dep_method")?.addEventListener("change", writeSessionState);
 document.getElementById("p2p_side")?.addEventListener("change", writeSessionState);
 document.getElementById("p2p_asset")?.addEventListener("change", writeSessionState);
+document.getElementById("p2p_asset_custom")?.addEventListener("input", writeSessionState);
+document.getElementById("p2p_quote_asset")?.addEventListener("change", writeSessionState);
+document.getElementById("p2p_quote_custom")?.addEventListener("input", writeSessionState);
 document.getElementById("p2p_amount")?.addEventListener("input", writeSessionState);
 document.getElementById("p2p_rate")?.addEventListener("input", writeSessionState);
 document.getElementById("p2p_fiat")?.addEventListener("change", writeSessionState);
